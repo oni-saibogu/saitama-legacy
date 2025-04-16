@@ -3,10 +3,12 @@
   "private": "true",
   "version": "0.0.0",
   "license": "AGPL-3.0-only",
-  "packageManager": "yarn@1.22.22",
+  "packageManager": "bun@1.2.9",
   "scripts": {
-    "clean": "rimraf -rf node_modules .turbo dist out */*/.turbo */packages/dist */*/.next */*/node_modules",
-    "publish": "turbo run build && changeset version"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "publish": "turbo run build && changeset version",
+    "clean": "rimraf -rf node_modules .turbo dist out */*/.turbo */packages/dist */*/.next */*/node_modules"
   },
   "dependencies": {
     "@changesets/cli": "^2.27.8",
@@ -14,12 +16,12 @@
     "eruda": "^3.2.3",
     "js-cookie": "^3.0.5",
     "sharp": "^0.33.5",
+    "tiny-secp256k1": "^2.2.3",
     "tsup": "^8.2.4",
     "turbo": "^2.1.0",
     "typescript": "latest"
   },
   "workspaces": [
-    "contracts/*",
     "packages/*",
     "apps/*",
     "servers/*"

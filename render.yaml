@@ -9,7 +9,6 @@ services:
       paths:
         - servers/kamikaze/**/*.ts
         - servers/kamikaze/Dockerfile
-        - contracts/bofio/**/*.ts
         - packages/tsconfig/*.json
     envVars:
       - fromGroup: servers/kamikaze
@@ -19,55 +18,6 @@ services:
           property: connectionString
     domains:
       - "v1.api.gateway.saitama.fun"
-  # - type: worker
-  #   name: watchdog
-  #   runtime: docker
-  #   plan: starter
-  #   autoDeploy: true
-  #   dockerfilePath: servers/watchdog/Dockerfile
-  #   buildFilter:
-  #     paths:
-  #       - contracts/bofio/**/*.ts
-  #       - servers/watchdog/**/*.ts
-  #       - servers/kamikaze/src/db/*.sql
-  #       - servers/kamikaze/drizzle/*.json
-  #       - servers/kamikaze/src/modules/payment/**/*.ts
-  #       - servers/kamikaze/src/modules/webhook/**/*.ts
-  #   envVars:
-  #     - fromGroup: servers/kamikaze
-  #     - key: DATABASE_URL
-  #       fromDatabase:
-  #         name: kamikazeDB
-  #         property: connectionString
-  - type: web
-    name: exma
-    runtime: docker
-    plan: standard
-    autoDeploy: true
-    dockerfilePath: apps/exma/Dockerfile
-    buildFilter:
-      paths:
-        - apps/exma/**/*.ts
-        - apps/exma/**/*.tsx
-        - apps/exma/Dockerfile
-        - packages/tsconfig/*.json
-        - packages/wallet/**/*.ts
-        - contracts/bofio/**/*.ts
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: SAITAMA_API_URL
-        fromService:
-          type: web
-          name: kamikaze
-          envVarKey: RENDER_EXTERNAL_URL
-      - key: NEXT_PUBLIC_SAITAMA_API_URL
-        fromService:
-          type: web
-          name: kamikaze
-          envVarKey: RENDER_EXTERNAL_URL
-    domains:
-      - wallet.saitama.fun
 databases:
   - name: kamikazeDB
     user: admin

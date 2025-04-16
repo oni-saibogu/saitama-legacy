@@ -1,8 +1,0 @@
-{
-  "extends": "@saitamafun/tsconfig",
-  "compilerOptions": {
-    "esModuleInterop": true
-  },
-  "include": ["app"],
-  "exclude": ["node_modules"]
-}

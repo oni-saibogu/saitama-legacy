@@ -1,1 +1,0 @@
-ALTER TABLE "authUsers" ADD CONSTRAINT "unique_uid_auth" UNIQUE("uid","auth");

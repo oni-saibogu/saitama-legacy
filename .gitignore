@@ -6,3 +6,4 @@ sugar.log
 dist 
 .env.*
 out
+apps/examples
