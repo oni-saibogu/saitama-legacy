@@ -4,6 +4,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 
 import { getEnv } from "../../env";
 import { db } from "../../instances";
+import { RequestError } from "../../error";
 import { insertWalletSchema, selectWalletSchema } from "../../db/zod";
 import { generateAddressFromIndex } from "../../core/wallet/generate";
 import {
@@ -17,12 +18,16 @@ const createWalletRoute = async (
   request: FastifyRequest<{ Body: Zod.infer<typeof insertWalletSchema> }>
 ) =>
   insertWalletSchema
-    .omit({ generated: true })
+    .omit({ app: true, generated: true })
     .partial({ address: true })
     .parseAsync(request.body)
     .then(async (body) => {
       if (body.address)
-        return createWallet(db, { ...body, address: body.address });
+        return createWallet(db, {
+          ...body,
+          app: request.user!.app!.id,
+          address: body.address,
+        });
       else {
         const index = crypto.randomInt(0, 10);
         const address = await generateAddressFromIndex(
@@ -32,8 +37,9 @@ const createWalletRoute = async (
         );
         return createWallet(db, {
           ...body,
-          generated: true,
           address,
+          generated: true,
+          app: request.user!.app!.id,
           metadata: { index },
         });
       }
@@ -77,25 +83,25 @@ export default function registerWalletRoutes(fastify: FastifyInstance) {
     .route({
       method: "POST",
       url: "/wallets/",
-      handler: createWalletRoute,
+      handler: RequestError.handler(createWalletRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
     })
     .route({
       method: "GET",
       url: "/wallets",
-      handler: getWalletsRoute,
+      handler: RequestError.handler(getWalletsRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
     })
     .route({
       method: "PATCH",
       url: "/wallets/:id/",
-      handler: updateWalletRoute,
+      handler: RequestError.handler(updateWalletRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
     })
     .route({
       method: "DELETE",
       url: "/wallets/:id/",
-      handler: deleteeWalletRoute,
+      handler: RequestError.handler(deleteeWalletRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
     });
 }

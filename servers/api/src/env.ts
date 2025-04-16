@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-type Env = "MNEMONIC"|"HOST"|"PORT"|"SERVICE_ACCOUNT"|"DATABASE_URL"|"SECRET_KEY";
+type Env = "MNEMONIC"|"HOST"|"PORT"|"DATABASE_URL"|"SECRET_KEY"|"SERVICE_ACCOUNT";
 
 export const getEnv = <T extends object | number | string = string>(
   name: Env,

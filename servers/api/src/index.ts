@@ -1,4 +1,4 @@
-import Fastify from "fastify";
+import Fastify, { type FastifyRequest } from "fastify";
 import { readFileSync } from "fs";
 import fastifyCors from "@fastify/cors";
 import fastifyPassport from "@fastify/passport";
@@ -15,6 +15,7 @@ import { RequestError } from "./error";
 import registerRoutes from "./modules";
 import type { selectUserSchema } from "./db/zod";
 import { getUserById } from "./modules/user/users.controller";
+import { getAppByUserAndId } from "./modules/apps/app.controller";
 import { ApiKeyStrategy, FirebaseStrategy } from "./modules/auth/auth.strategy";
 
 function main() {
@@ -46,12 +47,21 @@ function main() {
       {
         jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
         secretOrKey: getEnv("SECRET_KEY")!,
+        passReqToCallback: true,
       },
-      (payload, done) => {
+      async (request: FastifyRequest, payload, done) => {
+        let app = undefined;
+        const appId = request.headers["x-app-id"] as string | undefined;
+
         if (payload.id) {
-          return getUserById(db, payload.id)
-            .then((user) => done(null, user))
-            .catch((error) => done(error, null));
+          const user = await getUserById(db, payload.id).then((user) => user);
+
+          if (user) {
+            if (appId) app = await getAppByUserAndId(db, user.id, appId);
+            return done(null, { ...user, app });
+          }
+
+          done(null, null);
         }
 
         return done(new RequestError(500, "invalid jwt payload"), null);
@@ -69,10 +79,12 @@ function main() {
     Zod.infer<typeof selectUserSchema>
   >(async (payload) => {
     const user = await getUserById(db, payload.id);
+
     if (user) return user;
+
     throw new RequestError(404, format("user with id=% not found", payload.id));
   });
-  
+
   registerRoutes(fastify);
 
   fastify.listen({

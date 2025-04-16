@@ -10,7 +10,8 @@ import type {
 export const createWallet = (
   db: Database,
   value: Zod.infer<typeof insertWalletSchema>
-) => db.insert(wallets).values(value).returning().execute();
+) =>
+  db.insert(wallets).values(value).returning().onConflictDoNothing().execute();
 
 export const getWalletsByApp = (
   db: Database,

@@ -1,7 +1,9 @@
 import passport from "@fastify/passport";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
+import { format } from "../../core";
 import { db } from "../../instances";
+import { RequestError } from "../../error";
 import { insertAppSchema, selectAppSchema } from "../../db/zod";
 import {
   createApp,
@@ -14,9 +16,14 @@ import {
 const createAppRoute = (
   request: FastifyRequest<{ Body: Zod.infer<typeof insertAppSchema> }>
 ) =>
-  insertAppSchema.parseAsync(request.body).then((body) => {
-    return createApp(db, body);
-  });
+  insertAppSchema
+    .omit({ user: true })
+    .parseAsync(request.body)
+    .then(async (body) => {
+      const [app] = await createApp(db, { ...body, user: request.user!.id });
+      return app;
+    });
+
 
 const getAppsRoute = (request: FastifyRequest) =>
   getAppsByUser(db, request.user!.id);
@@ -29,8 +36,11 @@ const getAppRoute = (
   selectAppSchema
     .pick({ id: true })
     .parseAsync(request.params)
-    .then(({ id }) => {
-      return getAppByUserAndId(db, request.user!.id, id);
+    .then(async ({ id }) => {
+      const app = await getAppByUserAndId(db, request.user!.id, id);
+      if (app) return app;
+
+      throw new RequestError(404, format("app with id=% not found", id));
     });
 
 const updateAppRoute = (
@@ -46,8 +56,17 @@ const updateAppRoute = (
       insertAppSchema
         .partial()
         .parseAsync(request.body)
-        .then((body) => {
-          return updateAppByUserAndId(db, request.user!.id, id, body);
+        .then(async (body) => {
+          const app = await updateAppByUserAndId(
+            db,
+            request.user!.id,
+            id,
+            body
+          );
+
+          if (app) return app;
+
+          throw new RequestError(404, format("app with id=% not found", id));
         })
     );
 
@@ -59,8 +78,11 @@ const deleteAppRoute = (
   selectAppSchema
     .pick({ id: true })
     .parseAsync(request.params)
-    .then(({ id }) => {
-      return deleteAppByUserAndId(db, request.user!.id, id);
+    .then(async ({ id }) => {
+      const [app] = await deleteAppByUserAndId(db, request.user!.id, id);
+      if (app) return app;
+
+      throw new RequestError(404, format("app with id=% not found", id));
     });
 
 export default function registerAppRoutes(fastify: FastifyInstance) {
@@ -68,31 +90,31 @@ export default function registerAppRoutes(fastify: FastifyInstance) {
     .route({
       method: "POST",
       url: "/apps/",
-      handler: createAppRoute,
+      handler: RequestError.handler(createAppRoute),
       preHandler: passport.authenticate("jwt"),
     })
     .route({
       method: "GET",
       url: "/apps/",
-      handler: getAppsRoute,
+      handler: RequestError.handler(getAppsRoute),
       preHandler: passport.authenticate("jwt"),
     })
     .route({
       method: "GET",
       url: "/apps/:id/",
-      handler: getAppRoute,
+      handler: RequestError.handler(getAppRoute),
       preHandler: passport.authenticate("jwt"),
     })
     .route({
       method: "PATCH",
       url: "/apps/:id/",
-      handler: updateAppRoute,
+      handler: RequestError.handler(updateAppRoute),
       preHandler: passport.authenticate("jwt"),
     })
     .route({
       method: "DELETE",
       url: "/apps/:id/",
-      handler: deleteAppRoute,
+      handler: RequestError.handler(deleteAppRoute),
       preHandler: passport.authenticate("jwt"),
     });
 }

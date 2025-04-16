@@ -9,12 +9,12 @@ export class RequestError extends Error {
     super(message);
   }
 
-  static handler<
-    T extends (request: FastifyRequest, reply: FastifyReply) => unknown
-  >(fn: T) {
-    return async (request: FastifyRequest, reply: FastifyReply) => {
+  static handler<T extends FastifyRequest, U extends FastifyReply>(
+    fn: (request: T, reply: U) => unknown
+  ) {
+    return async (request: T, reply: U) => {
       try {
-        await fn(request, reply);
+        return await fn(request, reply);
       } catch (error) {
         if (error instanceof ZodError)
           return reply.status(400).send(error.format());

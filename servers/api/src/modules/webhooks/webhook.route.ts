@@ -1,7 +1,9 @@
 import passport from "@fastify/passport";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
+import { format } from "../../core";
 import { db } from "../../instances";
+import { RequestError } from "../../error";
 import { insertWebhookSchema, selectWebhookSchema } from "../../db/zod";
 import {
   createWebhook,
@@ -13,9 +15,12 @@ import {
 const createWebhookRoute = (
   request: FastifyRequest<{ Body: Zod.infer<typeof insertWebhookSchema> }>
 ) =>
-  insertWebhookSchema.parseAsync(request.body).then((body) => {
-    return createWebhook(db, body);
-  });
+  insertWebhookSchema
+    .omit({ app: true })
+    .parseAsync(request.body)
+    .then((body) => {
+      return createWebhook(db, { app: request.user!.app!.id, ...body });
+    });
 
 const getWebhooksRoute = (request: FastifyRequest) =>
   getWebhooksByApp(db, request.user!.app!.id);
@@ -33,8 +38,20 @@ const updateWebhookRoute = (
       insertWebhookSchema
         .partial()
         .parseAsync(request.body)
-        .then((body) => {
-          return updateWebhookByAppAndId(db, request.user!.app!.id, id, body);
+        .then(async (body) => {
+          const [webhook] = await updateWebhookByAppAndId(
+            db,
+            request.user!.app!.id,
+            id,
+            body
+          );
+          
+          if (webhook) return webhook;
+
+          throw new RequestError(
+            404,
+            format("webhook with id=% not found", id)
+          );
         })
     );
 
@@ -46,8 +63,16 @@ const deleteWebhookRoute = (
   selectWebhookSchema
     .pick({ id: true })
     .parseAsync(request.params)
-    .then(({ id }) => {
-      return deleteWebhookByAppAndId(db, request.user!.app!.id, id);
+    .then(async ({ id }) => {
+      const [webhook] = await deleteWebhookByAppAndId(
+        db,
+        request.user!.app!.id,
+        id
+      );
+
+      if (webhook) return webhook;
+
+      throw new RequestError(404, format("webhook with id=% not found", id));
     });
 
 export default function registerWebhookRoutes(fastify: FastifyInstance) {
@@ -55,25 +80,25 @@ export default function registerWebhookRoutes(fastify: FastifyInstance) {
     .route({
       method: "POST",
       url: "/webhooks/",
-      handler: createWebhookRoute,
+      handler: RequestError.handler(createWebhookRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
     })
     .route({
       method: "GET",
       url: "/webhooks/",
-      handler: getWebhooksRoute,
+      handler: RequestError.handler(getWebhooksRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
     })
     .route({
       method: "PATCH",
       url: "/webhooks/:id/",
-      handler: updateWebhookRoute,
+      handler: RequestError.handler(updateWebhookRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
     })
     .route({
       method: "DELETE",
       url: "/webhooks/:id/",
-      handler: deleteWebhookRoute,
+      handler: RequestError.handler(deleteWebhookRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
     });
 }

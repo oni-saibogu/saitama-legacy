@@ -2,13 +2,14 @@ import passport from "@fastify/passport";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
 import { db } from "../../instances";
+import { RequestError } from "../../error";
+import { insertPaymentSchema, selectPaymentSchema } from "../../db/zod";
 import {
   createPayment,
   getPaymentByAppAndId,
   getPaymentsByAppWhere,
   updatePaymentByAppAndId,
 } from "./payment.controller";
-import { insertPaymentSchema, selectPaymentSchema } from "../../db/zod";
 
 const createPaymentRoute = (
   request: FastifyRequest<{ Body: Zod.infer<typeof insertPaymentSchema> }>
@@ -56,25 +57,25 @@ export default function registerPaymentkoutes(fastify: FastifyInstance) {
     .route({
       method: "POST",
       url: "/payments/",
-      handler: createPaymentRoute,
+      handler: RequestError.handler(createPaymentRoute),
       preHandler: passport.authenticate("jwt"),
     })
     .route({
       method: "GET",
       url: "/payments/",
-      handler: getPaymentsRoute,
+      handler: RequestError.handler(getPaymentsRoute),
       preHandler: passport.authenticate("jwt"),
     })
     .route({
       method: "GET",
       url: "/payments/:id/",
-      handler: getPaymentRoute,
+      handler: RequestError.handler(getPaymentRoute),
       preHandler: passport.authenticate("jwt"),
     })
     .route({
       method: "PATCH",
       url: "/payments/:id/",
-      handler: updatePaymentRoute,
+      handler: RequestError.handler(updatePaymentRoute),
       preHandler: passport.authenticate("jwt"),
     });
 }

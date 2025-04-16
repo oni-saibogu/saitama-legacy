@@ -9,27 +9,30 @@ import { apiKeys, users } from "../../db/schema";
 export class FirebaseStrategy extends Strategy {
   authenticate(request: express.Request) {
     const authorization = request.headers.authorization;
-    
+
     if (authorization) {
-      const [, value] = authorization.split(/\s/g);
+      const [, value] = authorization.split(/\s+/g);
 
       if (value) {
         const auth = getAuth();
-        auth
+
+        return auth
           .verifyIdToken(value)
           .then(async (firebaseUser) => {
             const value = {
               id: firebaseUser.uid,
               email: firebaseUser.email!,
               isVerified: firebaseUser.email_verified,
+              lastLogin: new Date(firebaseUser.auth_time),
             };
 
-            const user = await db
+            const [user] = await db
               .insert(users)
               .values(value)
               .onConflictDoUpdate({ target: [users.id], set: value })
               .returning()
               .execute();
+
             this.success(user);
           })
           .catch((error) => this.fail(error, 401));
@@ -51,7 +54,15 @@ export class ApiKeyStrategy extends Strategy {
           .findFirst({
             where: eq(apiKeys.publicKey, value),
             with: {
-              app: true,
+              app: {
+                with: {
+                  user: true,
+                },
+                columns: {
+                  id: true,
+                  user: false,
+                },
+              },
             },
             columns: {
               id: true,
@@ -60,7 +71,8 @@ export class ApiKeyStrategy extends Strategy {
           })
           .execute()
           .then((apiKey) => {
-            if (apiKey) return this.success(apiKey.app);
+            if (apiKey)
+              return this.success({ ...apiKey.app.user, app: apiKey.app });
             return this.fail("not authorized", 401);
           })
           .catch((error) => this.fail(error, 401));

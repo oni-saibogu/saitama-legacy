@@ -2,6 +2,7 @@ import passport from "@fastify/passport";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
 import { db } from "../../instances";
+import { RequestError } from "../../error";
 import { insertCustomerSchema, selectCustomerSchema } from "../../db/zod";
 import {
   createCustomer,
@@ -68,31 +69,31 @@ export default function registerCustomerRoutes(fastify: FastifyInstance) {
     .route({
       method: "POST",
       url: "/customers/",
-      handler: createCustomerRoute,
+      handler: RequestError.handler(createCustomerRoute),
       preHandler: passport.authenticate("jwt"),
     })
     .route({
       method: "GET",
       url: "/customers/",
-      handler: getCustomersRoute,
+      handler: RequestError.handler(getCustomersRoute),
       preHandler: passport.authenticate("jwt"),
     })
     .route({
       method: "GET",
       url: "/customers/:id/",
-      handler: getCustomerRoute,
+      handler: RequestError.handler(getCustomerRoute),
       preHandler: passport.authenticate("jwt"),
     })
     .route({
       method: "PATCH",
       url: "/customers/:id/",
-      handler: updateCustomerRoute,
+      handler: RequestError.handler(updateCustomerRoute),
       preHandler: passport.authenticate("jwt"),
     })
     .route({
       method: "DELETE",
       url: "/customers/:id/",
-      handler: deleteCustomerRoute,
+      handler: RequestError.handler(deleteCustomerRoute),
       preHandler: passport.authenticate("jwt"),
     });
 }

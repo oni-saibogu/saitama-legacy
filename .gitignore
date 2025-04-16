@@ -7,3 +7,4 @@ dist
 .env.*
 out
 apps/examples
+serviceAccount.json

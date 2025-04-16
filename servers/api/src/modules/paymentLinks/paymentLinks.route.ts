@@ -2,6 +2,7 @@ import passport from "@fastify/passport";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
 import { db } from "../../instances";
+import { RequestError } from "../../error";
 import { insertPaymentLinkSchema, selectPaymentLinkSchema } from "../../db/zod";
 import {
   createPaymentLink,
@@ -73,31 +74,31 @@ export default function registerPaymentLinkRoutes(fastify: FastifyInstance) {
     .route({
       method: "POST",
       url: "/payment-links/",
-      handler: createPaymentLinkRoute,
+      handler: RequestError.handler(createPaymentLinkRoute),
       preHandler: passport.authenticate("jwt"),
     })
     .route({
       method: "GET",
       url: "/payment-links/",
-      handler: getPaymentLinksRoute,
+      handler: RequestError.handler(getPaymentLinksRoute),
       preHandler: passport.authenticate("jwt"),
     })
     .route({
       method: "GET",
       url: "/payment-links/:id/",
-      handler: getPaymentLinkRoute,
+      handler: RequestError.handler(getPaymentLinkRoute),
       preHandler: passport.authenticate("jwt"),
     })
     .route({
       method: "PATCH",
       url: "/payment-links/:id/",
-      handler: updatePaymentLinkRoute,
+      handler: RequestError.handler(updatePaymentLinkRoute),
       preHandler: passport.authenticate("jwt"),
     })
     .route({
       method: "DELETE",
       url: "/payment-links/:id/",
-      handler: deletePaymentLinkRoute,
+      handler: RequestError.handler(deletePaymentLinkRoute),
       preHandler: passport.authenticate("jwt"),
     });
 }
