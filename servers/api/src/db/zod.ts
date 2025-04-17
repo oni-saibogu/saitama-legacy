@@ -10,6 +10,7 @@ import {
   wallets,
   webhooks,
 } from "./schema";
+import { object, string } from "zod";
 
 export const insertUserSchema = createInsertSchema(users, {
   email: (column) => column.email(),
@@ -48,8 +49,16 @@ export const insertPaymentSchema = createInsertSchema(payments).omit({
   updatedAt: true,
 });
 
-export const selectPaymentLinkSchema = createSelectSchema(paymentLinks);
-export const insertPaymentLinkSchema = createInsertSchema(paymentLinks);
+export const priceSchema = object({
+  amount: string(),
+  currency: string(),
+});
+export const selectPaymentLinkSchema = createSelectSchema(paymentLinks, {
+  price: priceSchema,
+});
+export const insertPaymentLinkSchema = createInsertSchema(paymentLinks, {
+  price: priceSchema,
+});
 
 export const selectCustomerSchema = createSelectSchema(customers);
 export const selectCustomerById = selectCustomerSchema.pick({ id: true });

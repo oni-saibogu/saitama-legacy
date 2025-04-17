@@ -11,12 +11,17 @@ type User = z.infer<typeof selectUserSchema>;
 
 declare module "fastify" {
   interface PassportUser extends User {
-    app?: z.infer<typeof selectAppSchema> | null;
+    app: z.infer<typeof selectAppSchema>;
   }
 
   interface FastifyInstance {
     io: Server;
   }
+
+  interface FastifyRequest {
+    user: PassportUser;
+  }
+
 }
 
 declare module "@fastify/secure-session" {

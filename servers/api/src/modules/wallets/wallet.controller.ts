@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+
 import type { Database } from "../../db";
 import { wallets } from "../../db/schema";
 import type {
@@ -11,7 +12,15 @@ export const createWallet = (
   db: Database,
   value: Zod.infer<typeof insertWalletSchema>
 ) =>
-  db.insert(wallets).values(value).returning().onConflictDoNothing().execute();
+  db
+    .insert(wallets)
+    .values(value)
+    .returning()
+    .onConflictDoUpdate({
+      target: [wallets.app, wallets.address, wallets.chain],
+      set: value,
+    })
+    .execute();
 
 export const getWalletsByApp = (
   db: Database,

@@ -8,6 +8,20 @@
       "when": 1744827354045,
       "tag": "0000_careless_polaris",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1744850326670,
+      "tag": "0001_nice_boom_boom",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1744854830842,
+      "tag": "0002_clammy_longshot",
+      "breakpoints": true
     }
   ]
 }

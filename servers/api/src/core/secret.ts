@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 
-export const encrypt = <T>(key: Buffer, data: T) => {
+export const encrypt = <T>(key: string, data: T) => {
   const iv = crypto.randomBytes(8).toString("hex");
   const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
   let encrypted = cipher.update(JSON.stringify(data), "utf-8", "base64");
@@ -9,7 +9,7 @@ export const encrypt = <T>(key: Buffer, data: T) => {
   return Buffer.from([iv, encrypted].join("|")).toString("base64");
 };
 
-export const decrypt = <T>(key: Buffer, value: string) => {
+export const decrypt = <T>(key: string, value: string) => {
   value = Buffer.from(value, "base64").toString("utf-8");
 
   const [iv, hash] = value.split("|");

@@ -31,7 +31,7 @@ export const getPaymentLinksByApp = (
 ) =>
   db.query.paymentLinks.findMany({
     where: eq(paymentLinks.app, app),
-  }).execute;
+  }).execute();
 
 export const updatePaymentLinkByAppAndId = async (
   db: Database,
@@ -40,7 +40,7 @@ export const updatePaymentLinkByAppAndId = async (
   value: Partial<Zod.infer<typeof insertPaymentLinkSchema>>
 ) =>
   db
-    .update(payments)
+    .update(paymentLinks)
     .set(value)
     .where(and(eq(paymentLinks.id, id), eq(paymentLinks.app, app)))
     .returning()
@@ -52,7 +52,7 @@ export const deletePaymentLinkByAppAndId = async (
   id: Zod.infer<typeof selectPaymentSchema>["id"]
 ) =>
   db
-    .delete(payments)
+    .delete(paymentLinks)
     .where(and(eq(paymentLinks.id, id), eq(paymentLinks.app, app)))
     .returning()
     .execute();

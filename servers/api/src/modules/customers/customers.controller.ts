@@ -51,6 +51,7 @@ export const deleteCustomerByAppAndId = (
 ) =>
   db
     .delete(customers)
+    
     .where(and(eq(customers.id, id), eq(customers.app, app)))
     .returning()
     .execute();

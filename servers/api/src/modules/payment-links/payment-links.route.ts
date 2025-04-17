@@ -1,8 +1,10 @@
 import passport from "@fastify/passport";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
+import { format } from "../../core";
 import { db } from "../../instances";
 import { RequestError } from "../../error";
+import { withUserGuard } from "../../guards";
 import { insertPaymentLinkSchema, selectPaymentLinkSchema } from "../../db/zod";
 import {
   createPaymentLink,
@@ -10,29 +12,47 @@ import {
   getPaymentLinkByAppAndId,
   getPaymentLinksByApp,
   updatePaymentLinkByAppAndId,
-} from "./paymentLinks.controller";
+} from "./payment-links.controller";
 
 const createPaymentLinkRoute = (
   request: FastifyRequest<{ Body: Zod.infer<typeof insertPaymentLinkSchema> }>
 ) =>
-  insertPaymentLinkSchema
-    .parseAsync(request.body)
-    .then((body) => createPaymentLink(db, body));
+  withUserGuard((user) =>
+    insertPaymentLinkSchema
+      .omit({ app: true })
+      .parseAsync(request.body)
+      .then(async (body) => {
+        const [paymentLink] = await createPaymentLink(db, {
+          ...body,
+          app: user.app.id,
+        });
 
-const getPaymentLinksRoute = (request: FastifyRequest) =>
-  getPaymentLinksByApp(db, request.user!.app!.id);
+        return paymentLink;
+      })
+  );
+
+const getPaymentLinksRoute = () =>
+  withUserGuard((user) => getPaymentLinksByApp(db, user.app.id));
 
 const getPaymentLinkRoute = (
   request: FastifyRequest<{
     Params: Pick<Zod.infer<typeof selectPaymentLinkSchema>, "id">;
   }>
 ) =>
-  selectPaymentLinkSchema
-    .pick({ id: true })
-    .parseAsync(request.params)
-    .then(({ id }) => {
-      return getPaymentLinkByAppAndId(db, request.user!.app!.id, id);
-    });
+  withUserGuard((user) =>
+    selectPaymentLinkSchema
+      .pick({ id: true })
+      .parseAsync(request.params)
+      .then(async ({ id }) => {
+        const paymentLink = await getPaymentLinkByAppAndId(db, user.app.id, id);
+        if (paymentLink) return paymentLink;
+
+        throw new RequestError(
+          404,
+          format("paymentLink with id=% not found", id)
+        );
+      })
+  );
 
 const updatePaymentLinkRoute = (
   request: FastifyRequest<{
@@ -40,34 +60,54 @@ const updatePaymentLinkRoute = (
     Body: Partial<Zod.infer<typeof insertPaymentLinkSchema>>;
   }>
 ) =>
-  selectPaymentLinkSchema
-    .pick({ id: true })
-    .parseAsync(request.params)
-    .then(({ id }) =>
-      insertPaymentLinkSchema
-        .partial()
-        .parseAsync(request.body)
-        .then((body) => {
-          return updatePaymentLinkByAppAndId(
-            db,
-            request.user!.app!.id,
-            id,
-            body
-          );
-        })
-    );
+  withUserGuard((user) =>
+    selectPaymentLinkSchema
+      .pick({ id: true })
+      .parseAsync(request.params)
+      .then(({ id }) =>
+        insertPaymentLinkSchema
+          .partial()
+          .parseAsync(request.body)
+          .then(async (body) => {
+            const [paymentLink] = await updatePaymentLinkByAppAndId(
+              db,
+              user.app.id,
+              id,
+              body
+            );
+            if (paymentLink) return paymentLink;
+
+            throw new RequestError(
+              404,
+              format("paymentLink with id=% not found", id)
+            );
+          })
+      )
+  );
 
 const deletePaymentLinkRoute = (
   request: FastifyRequest<{
     Params: Pick<Zod.infer<typeof selectPaymentLinkSchema>, "id">;
   }>
 ) =>
-  selectPaymentLinkSchema
-    .pick({ id: true })
-    .parseAsync(request.params)
-    .then(({ id }) => {
-      return deletePaymentLinkByAppAndId(db, request.user!.app!.id, id);
-    });
+  withUserGuard((user) =>
+    selectPaymentLinkSchema
+      .pick({ id: true })
+      .parseAsync(request.params)
+      .then(async ({ id }) => {
+        const [paymentLink] = await deletePaymentLinkByAppAndId(
+          db,
+          user.app.id,
+          id
+        );
+        if (paymentLink) return paymentLink;
+
+        throw new RequestError(
+          404,
+          format("paymentLink with id=% not found", id)
+        );
+      })
+  );
 
 export default function registerPaymentLinkRoutes(fastify: FastifyInstance) {
   fastify

@@ -4,11 +4,11 @@ import registerAppRoutes from "./apps/app.route";
 import registerAuthRoutes from "./auth/auth.route";
 import registerUserRoutes from "./user/users.route";
 import registerWalletRoutes from "./wallets/wallet.route";
-import registerApiKeyRoutes from "./apiKeys/apiKey.route";
+import registerApiKeyRoutes from "./api-keys/api-key.route";
 import registerPaymentRoutes from "./payments/payment.route";
 import registerWebhookRoutes from "./webhooks/webhook.route";
 import registerCustomerRoutes from "./customers/customers.route";
-import registerPaymentLinkRoutes from "./paymentLinks/paymentLinks.route";
+import registerPaymentLinkRoutes from "./payment-links/payment-links.route";
 
 export default function registerRoutes(fastify: FastifyInstance) {
   registerAppRoutes(fastify);

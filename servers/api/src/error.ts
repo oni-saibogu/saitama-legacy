@@ -14,7 +14,10 @@ export class RequestError extends Error {
   ) {
     return async (request: T, reply: U) => {
       try {
-        return await fn(request, reply);
+        let result = await fn(request, reply);
+        if (result instanceof Function)
+          result = await (result as typeof fn)(request, reply);
+        return result;
       } catch (error) {
         if (error instanceof ZodError)
           return reply.status(400).send(error.format());

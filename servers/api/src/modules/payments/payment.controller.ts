@@ -46,7 +46,7 @@ export const getPaymentByAppAndId = (
     .where(eq(payments.id, id))
     .innerJoin(
       paymentLinks,
-      and(eq(paymentLinks.app, app), eq(paymentLinks.id, id))
+      and(eq(paymentLinks.app, app), eq(paymentLinks.id, payments.paymentLink))
     )
     .execute();
 };
@@ -63,7 +63,7 @@ export const updatePaymentByAppAndId = async (
     .where(eq(payments.id, id))
     .innerJoin(
       paymentLinks,
-      and(eq(paymentLinks.app, app), eq(paymentLinks.id, id))
+      and(eq(paymentLinks.app, app), eq(paymentLinks.id, payments.paymentLink))
     )
     .execute();
 
@@ -89,7 +89,7 @@ export const deletePaymentByPaymentLinkAndId = async (
     .where(eq(payments.id, id))
     .innerJoin(
       paymentLinks,
-      and(eq(paymentLinks.app, app), eq(paymentLinks.id, id))
+      and(eq(paymentLinks.app, app), eq(paymentLinks.id, payments.paymentLink))
     )
     .execute();
 

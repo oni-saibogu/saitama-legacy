@@ -1,8 +1,10 @@
 import passport from "@fastify/passport";
-import type { FastifyInstance, FastifyRequest } from "fastify";
-import { RequestError } from "../../error";
+import type { FastifyInstance } from "fastify";
 
-const getUserRoute = (request: FastifyRequest) => request.user;
+import { RequestError } from "../../error";
+import { withUserGuard } from "../../guards";
+
+const getUserRoute = withUserGuard((user) => user, true);
 
 export default function registerUserRoutes(fastify: FastifyInstance) {
   fastify.route({

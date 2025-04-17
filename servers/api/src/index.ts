@@ -55,7 +55,6 @@ function main() {
 
         if (payload.id) {
           const user = await getUserById(db, payload.id).then((user) => user);
-
           if (user) {
             if (appId) app = await getAppByUserAndId(db, user.id, appId);
             return done(null, { ...user, app });

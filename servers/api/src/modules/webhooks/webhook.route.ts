@@ -4,6 +4,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import { format } from "../../core";
 import { db } from "../../instances";
 import { RequestError } from "../../error";
+import { withUserGuard } from "../../guards";
 import { insertWebhookSchema, selectWebhookSchema } from "../../db/zod";
 import {
   createWebhook,
@@ -15,15 +16,18 @@ import {
 const createWebhookRoute = (
   request: FastifyRequest<{ Body: Zod.infer<typeof insertWebhookSchema> }>
 ) =>
-  insertWebhookSchema
-    .omit({ app: true })
-    .parseAsync(request.body)
-    .then((body) => {
-      return createWebhook(db, { app: request.user!.app!.id, ...body });
-    });
+  withUserGuard((user) =>
+    insertWebhookSchema
+      .omit({ app: true })
+      .parseAsync(request.body)
+      .then((body) => {
+        return createWebhook(db, { ...body, app: user.app.id });
+      })
+  );
 
-const getWebhooksRoute = (request: FastifyRequest) =>
-  getWebhooksByApp(db, request.user!.app!.id);
+const getWebhooksRoute = withUserGuard((user) =>
+  getWebhooksByApp(db, user.app.id)
+);
 
 const updateWebhookRoute = (
   request: FastifyRequest<{
@@ -31,49 +35,47 @@ const updateWebhookRoute = (
     Body: Partial<Zod.infer<typeof insertWebhookSchema>>;
   }>
 ) =>
-  selectWebhookSchema
-    .pick({ id: true })
-    .parseAsync(request.params)
-    .then(({ id }) =>
-      insertWebhookSchema
-        .partial()
-        .parseAsync(request.body)
-        .then(async (body) => {
-          const [webhook] = await updateWebhookByAppAndId(
-            db,
-            request.user!.app!.id,
-            id,
-            body
-          );
-          
-          if (webhook) return webhook;
+  withUserGuard((user) =>
+    selectWebhookSchema
+      .pick({ id: true })
+      .parseAsync(request.params)
+      .then(({ id }) =>
+        insertWebhookSchema
+          .partial()
+          .parseAsync(request.body)
+          .then(async (body) => {
+            const [webhook] = await updateWebhookByAppAndId(
+              db,
+              user.app.id,
+              id,
+              body
+            );
+            if (webhook) return webhook;
 
-          throw new RequestError(
-            404,
-            format("webhook with id=% not found", id)
-          );
-        })
-    );
+            throw new RequestError(
+              404,
+              format("webhook with id=% not found", id)
+            );
+          })
+      )
+  );
 
 const deleteWebhookRoute = (
   request: FastifyRequest<{
     Params: Pick<Zod.infer<typeof selectWebhookSchema>, "id">;
   }>
 ) =>
-  selectWebhookSchema
-    .pick({ id: true })
-    .parseAsync(request.params)
-    .then(async ({ id }) => {
-      const [webhook] = await deleteWebhookByAppAndId(
-        db,
-        request.user!.app!.id,
-        id
-      );
+  withUserGuard((user) =>
+    selectWebhookSchema
+      .pick({ id: true })
+      .parseAsync(request.params)
+      .then(async ({ id }) => {
+        const [webhook] = await deleteWebhookByAppAndId(db, user.app.id, id);
+        if (webhook) return webhook;
 
-      if (webhook) return webhook;
-
-      throw new RequestError(404, format("webhook with id=% not found", id));
-    });
+        throw new RequestError(404, format("webhook with id=% not found", id));
+      })
+  );
 
 export default function registerWebhookRoutes(fastify: FastifyInstance) {
   fastify

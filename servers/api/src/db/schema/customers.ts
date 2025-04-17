@@ -14,6 +14,8 @@ export const customers = pgTable(
     app: uuid()
       .references(() => apps.id, { onDelete: "cascade" })
       .notNull(),
+    firstName: text(),
+    lastName: text(),
     email: text().unique().notNull(),
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().notNull(),

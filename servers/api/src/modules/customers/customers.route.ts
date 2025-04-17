@@ -1,8 +1,10 @@
 import passport from "@fastify/passport";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
+import { format } from "../../core";
 import { db } from "../../instances";
 import { RequestError } from "../../error";
+import { withUserGuard } from "../../guards";
 import { insertCustomerSchema, selectCustomerSchema } from "../../db/zod";
 import {
   createCustomer,
@@ -15,24 +17,40 @@ import {
 const createCustomerRoute = (
   request: FastifyRequest<{ Body: Zod.infer<typeof insertCustomerSchema> }>
 ) =>
-  insertCustomerSchema
-    .parseAsync(request.body)
-    .then((body) => createCustomer(db, body));
+  withUserGuard((user) =>
+    insertCustomerSchema
+      .omit({ app: true })
+      .parseAsync(request.body)
+      .then(async (body) => {
+        const [customer] = await createCustomer(db, {
+          ...body,
+          app: user.app.id,
+        });
 
-const getCustomersRoute = (request: FastifyRequest) =>
-  getCustomersByAppWhere(db, request.user!.app!.id);
+        return customer;
+      })
+  );
+
+const getCustomersRoute = withUserGuard((user) =>
+  getCustomersByAppWhere(db, user.app.id)
+);
 
 const getCustomerRoute = (
   request: FastifyRequest<{
     Params: Pick<Zod.infer<typeof selectCustomerSchema>, "id">;
   }>
 ) =>
-  selectCustomerSchema
-    .pick({ id: true })
-    .parseAsync(request.params)
-    .then(({ id }) => {
-      return getCustomerByAppAndId(db, request.user!.app!.id, id);
-    });
+  withUserGuard((user) =>
+    selectCustomerSchema
+      .pick({ id: true })
+      .parseAsync(request.params)
+      .then(async ({ id }) => {
+        const customer = await getCustomerByAppAndId(db, user.app.id, id);
+        if (customer) return customer;
+
+        throw new RequestError(404, format("customer with id=% not found", id));
+      })
+  );
 
 const updateCustomerRoute = (
   request: FastifyRequest<{
@@ -40,17 +58,30 @@ const updateCustomerRoute = (
     Body: Partial<Zod.infer<typeof insertCustomerSchema>>;
   }>
 ) =>
-  selectCustomerSchema
-    .pick({ id: true })
-    .parseAsync(request.params)
-    .then(({ id }) =>
-      selectCustomerSchema
-        .partial()
-        .parseAsync(request.body)
-        .then((body) => {
-          return updateCustomerByAppAndId(db, request.user!.app!.id, id, body);
-        })
-    );
+  withUserGuard((user) =>
+    selectCustomerSchema
+      .pick({ id: true })
+      .parseAsync(request.params)
+      .then(({ id }) =>
+        selectCustomerSchema
+          .partial()
+          .parseAsync(request.body)
+          .then(async (body) => {
+            const [customer] = await updateCustomerByAppAndId(
+              db,
+              user.app.id,
+              id,
+              body
+            );
+            if (customer) return customer;
+
+            throw new RequestError(
+              404,
+              format("customer with id=% not found", id)
+            );
+          })
+      )
+  );
 
 const deleteCustomerRoute = (
   request: FastifyRequest<{
@@ -60,8 +91,16 @@ const deleteCustomerRoute = (
   selectCustomerSchema
     .pick({ id: true })
     .parseAsync(request.params)
-    .then(({ id }) => {
-      return deleteCustomerByAppAndId(db, request.user!.app!.id, id);
+    .then(async ({ id }) => {
+      const [customer] = await deleteCustomerByAppAndId(
+        db,
+        request.user!.app!.id,
+        id
+      );
+
+      if (customer) return customer;
+
+      throw new RequestError(404, format("customer with id=% not found", id));
     });
 
 export default function registerCustomerRoutes(fastify: FastifyInstance) {

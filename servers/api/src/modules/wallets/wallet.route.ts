@@ -3,8 +3,10 @@ import passport from "@fastify/passport";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
 import { getEnv } from "../../env";
+import { format } from "../../core";
 import { db } from "../../instances";
 import { RequestError } from "../../error";
+import { withUserGuard } from "../../guards";
 import { insertWalletSchema, selectWalletSchema } from "../../db/zod";
 import { generateAddressFromIndex } from "../../core/wallet/generate";
 import {
@@ -22,20 +24,21 @@ const createWalletRoute = async (
     .partial({ address: true })
     .parseAsync(request.body)
     .then(async (body) => {
+      let wallet = undefined;
       if (body.address)
-        return createWallet(db, {
+        [wallet] = await createWallet(db, {
           ...body,
           app: request.user!.app!.id,
           address: body.address,
         });
       else {
-        const index = crypto.randomInt(0, 10);
+        const index = crypto.randomInt(1, 10);
         const address = await generateAddressFromIndex(
           getEnv("MNEMONIC")!,
           index,
           body.chain
         );
-        return createWallet(db, {
+        [wallet] = await createWallet(db, {
           ...body,
           address,
           generated: true,
@@ -43,6 +46,8 @@ const createWalletRoute = async (
           metadata: { index },
         });
       }
+
+      return wallet;
     });
 
 export const getWalletsRoute = async (request: FastifyRequest) =>
@@ -54,29 +59,47 @@ const updateWalletRoute = async (
     Body: Partial<Zod.infer<typeof insertWalletSchema>>;
   }>
 ) =>
-  selectWalletSchema
-    .pick({ id: true })
-    .parseAsync(request.body)
-    .then(({ id }) =>
-      insertWalletSchema
-        .partial()
-        .parseAsync(request.body)
-        .then((body) => {
-          return updateWalletByAppAndId(db, request.user!.app!.id, id, body);
-        })
-    );
+  withUserGuard((user) =>
+    selectWalletSchema
+      .pick({ id: true })
+      .parseAsync(request.params)
+      .then(({ id }) =>
+        insertWalletSchema
+          .partial()
+          .parseAsync(request.body)
+          .then(async (body) => {
+            const [wallet] = await updateWalletByAppAndId(
+              db,
+              user.app.id,
+              id,
+              body
+            );
+            if (wallet) return wallet;
 
-const deleteeWalletRoute = async (
+            throw new RequestError(
+              404,
+              format("wallet with id=% not found", id)
+            );
+          })
+      )
+  );
+
+const deleteWalletRoute = async (
   request: FastifyRequest<{
     Params: Zod.infer<typeof selectWalletSchema>["id"];
   }>
 ) =>
-  selectWalletSchema
-    .pick({ id: true })
-    .parseAsync(request.body)
-    .then(({ id }) => {
-      return deleteWalletByAppAndId(db, request.user!.app!.id, id);
-    });
+  withUserGuard((user) =>
+    selectWalletSchema
+      .pick({ id: true })
+      .parseAsync(request.params)
+      .then(async ({ id }) => {
+        const [wallet] = await deleteWalletByAppAndId(db, user.app.id, id);
+        if (wallet) return wallet;
+
+        throw new RequestError(404, format("wallet with id=% not found", id));
+      })
+  );
 
 export default function registerWalletRoutes(fastify: FastifyInstance) {
   fastify
@@ -101,7 +124,7 @@ export default function registerWalletRoutes(fastify: FastifyInstance) {
     .route({
       method: "DELETE",
       url: "/wallets/:id/",
-      handler: RequestError.handler(deleteeWalletRoute),
+      handler: RequestError.handler(deleteWalletRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
     });
 }

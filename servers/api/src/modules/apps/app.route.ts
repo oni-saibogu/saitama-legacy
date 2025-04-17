@@ -4,6 +4,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import { format } from "../../core";
 import { db } from "../../instances";
 import { RequestError } from "../../error";
+import { withUserGuard } from "../../guards";
 import { insertAppSchema, selectAppSchema } from "../../db/zod";
 import {
   createApp,
@@ -16,32 +17,38 @@ import {
 const createAppRoute = (
   request: FastifyRequest<{ Body: Zod.infer<typeof insertAppSchema> }>
 ) =>
-  insertAppSchema
-    .omit({ user: true })
-    .parseAsync(request.body)
-    .then(async (body) => {
-      const [app] = await createApp(db, { ...body, user: request.user!.id });
-      return app;
-    });
-
-
-const getAppsRoute = (request: FastifyRequest) =>
-  getAppsByUser(db, request.user!.id);
+  withUserGuard(
+    (user) =>
+      insertAppSchema
+        .omit({ user: true })
+        .parseAsync(request.body)
+        .then(async (body) => {
+          const [app] = await createApp(db, { ...body, user: user.id });
+          return app;
+        }),
+    true
+  );
+  
+const getAppsRoute = withUserGuard((user) => getAppsByUser(db, user.id), true);
 
 const getAppRoute = (
   request: FastifyRequest<{
     Params: Pick<Zod.infer<typeof selectAppSchema>, "id">;
   }>
 ) =>
-  selectAppSchema
-    .pick({ id: true })
-    .parseAsync(request.params)
-    .then(async ({ id }) => {
-      const app = await getAppByUserAndId(db, request.user!.id, id);
-      if (app) return app;
+  withUserGuard(
+    async (user) =>
+      selectAppSchema
+        .pick({ id: true })
+        .parseAsync(request.params)
+        .then(async ({ id }) => {
+          const app = await getAppByUserAndId(db, user.id, id);
+          if (app) return app;
 
-      throw new RequestError(404, format("app with id=% not found", id));
-    });
+          throw new RequestError(404, format("app with id=% not found", id));
+        }),
+    true
+  );
 
 const updateAppRoute = (
   request: FastifyRequest<{
@@ -49,41 +56,46 @@ const updateAppRoute = (
     Body: Partial<Zod.infer<typeof insertAppSchema>>;
   }>
 ) =>
-  selectAppSchema
-    .pick({ id: true })
-    .parseAsync(request.params)
-    .then(({ id }) =>
-      insertAppSchema
-        .partial()
-        .parseAsync(request.body)
-        .then(async (body) => {
-          const app = await updateAppByUserAndId(
-            db,
-            request.user!.id,
-            id,
-            body
-          );
+  withUserGuard(
+    (user) =>
+      selectAppSchema
+        .pick({ id: true })
+        .parseAsync(request.params)
+        .then(({ id }) =>
+          insertAppSchema
+            .partial()
+            .parseAsync(request.body)
+            .then(async (body) => {
+              const app = await updateAppByUserAndId(db, user.id, id, body);
+              if (app) return app;
 
-          if (app) return app;
-
-          throw new RequestError(404, format("app with id=% not found", id));
-        })
-    );
+              throw new RequestError(
+                404,
+                format("app with id=% not found", id)
+              );
+            })
+        ),
+    true
+  );
 
 const deleteAppRoute = (
   request: FastifyRequest<{
     Params: Pick<Zod.infer<typeof selectAppSchema>, "id">;
   }>
 ) =>
-  selectAppSchema
-    .pick({ id: true })
-    .parseAsync(request.params)
-    .then(async ({ id }) => {
-      const [app] = await deleteAppByUserAndId(db, request.user!.id, id);
-      if (app) return app;
+  withUserGuard(
+    (user) =>
+      selectAppSchema
+        .pick({ id: true })
+        .parseAsync(request.params)
+        .then(async ({ id }) => {
+          const [app] = await deleteAppByUserAndId(db, user.id, id);
+          if (app) return app;
 
-      throw new RequestError(404, format("app with id=% not found", id));
-    });
+          throw new RequestError(404, format("app with id=% not found", id));
+        }),
+    true
+  );
 
 export default function registerAppRoutes(fastify: FastifyInstance) {
   fastify

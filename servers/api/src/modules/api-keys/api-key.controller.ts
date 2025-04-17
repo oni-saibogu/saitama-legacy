@@ -16,25 +16,25 @@ export const createApiKey = async (
   db: Database,
   value: Zod.infer<typeof insertApiKeySchema>
 ) => {
-  const { privateKey, publicKey } = await promisify(generateKeyPair)(
-    "ed25519",
-    {
-      publicKeyEncoding: { type: "spki", format: "der" },
-      privateKeyEncoding: { type: "pkcs8", format: "der" },
-    }
-  );
+  const keypair = await promisify(generateKeyPair)("ed25519", {
+    publicKeyEncoding: { type: "spki", format: "der" },
+    privateKeyEncoding: { type: "pkcs8", format: "der" },
+  });
+
+  const publicKey = keypair.publicKey.toBase64();
+  const privateKey = keypair.privateKey.toBase64();
 
   const [apiKey] = await db
     .insert(apiKeys)
     .values({
       ...value,
-      publicKey: publicKey.toBase64(),
-      secretKey: encrypt(secretKey, privateKey.toBase64()),
+      publicKey: publicKey,
+      secretKey: encrypt(secretKey, privateKey),
     })
     .returning()
     .execute();
 
-  return { ...apiKey, publicKey, secretKey };
+  return { ...apiKey, publicKey, secretKey: privateKey };
 };
 
 export const getApiKeysByApp = async (

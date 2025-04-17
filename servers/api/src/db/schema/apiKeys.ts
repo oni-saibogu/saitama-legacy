@@ -8,7 +8,6 @@ export const apiKeys = pgTable("apiKeys", {
   publicKey: text().notNull(),
   app: uuid()
     .references(() => apps.id, { onDelete: "cascade" })
-    .notNull()
-    .unique(),
+    .notNull(),
   createdAt: timestamp().defaultNow().notNull(),
 });
