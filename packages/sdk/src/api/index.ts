@@ -23,13 +23,18 @@ export class Api {
 
   constructor(
     private readonly endpoint: string,
-    private readonly accessToken: string
+    private readonly accessToken: string,
+    private readonly appId?: string
   ) {
+    const headers: { Authorization?: string; "x-app-id"?: string } = {
+      Authorization: "Bearer " + this.accessToken,
+    };
+
+    if (this.appId) headers["x-app-id"] = this.appId;
+
     this.xior = xior.create({
       baseURL: this.endpoint,
-      headers: {
-        Authorization: "Bearer " + this.accessToken,
-      },
+      headers,
     });
 
     this.app = new AppApi(this.xior);

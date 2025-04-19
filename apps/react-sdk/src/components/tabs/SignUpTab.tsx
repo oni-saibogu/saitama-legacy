@@ -4,8 +4,10 @@ import { TabPanel } from "@headlessui/react";
 import { Formik, Form, Field } from "formik";
 import { MdOutlineEmail } from "react-icons/md";
 
+import Loading from "../Loading";
 import { globalActions } from "../../store/global";
 import { useAppDispatch } from "../../store/hooks";
+import { useAPI } from "../../contexts/APIContext";
 
 type SignUpTabProps = {
   as?: React.ElementType;
@@ -14,6 +16,7 @@ type SignUpTabProps = {
 
 export default function SignUpTab({ as = TabPanel, onNext }: SignUpTabProps) {
   const As = as;
+  const { api } = useAPI();
   const dispatch = useAppDispatch();
   const email = useSearchParam("email");
 
@@ -24,10 +27,14 @@ export default function SignUpTab({ as = TabPanel, onNext }: SignUpTabProps) {
         validationSchema={object({
           email: string().email().required(),
         })}
-        onSubmit={(values, { setSubmitting }) => {
-          dispatch(globalActions.setCustomer(values));
-          onNext();
-          setSubmitting(false);
+        onSubmit={async (values, { setSubmitting }) => {
+          return api.customer
+            .create({ email: values.email })
+            .then(({ data }) => {
+              dispatch(globalActions.setCustomer(data));
+              return onNext();
+            })
+            .finally(() => setSubmitting(false));
         }}
       >
         {({ isSubmitting, errors }) => (
@@ -58,9 +65,10 @@ export default function SignUpTab({ as = TabPanel, onNext }: SignUpTabProps) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="!bg-violet-700 text-white py-3 rounded-md"
+              className="flex items-center justify-center space-x-4 !bg-violet-700 text-white p-2.5 rounded-md"
             >
-              Continue
+              <span>Continue</span>
+              {isSubmitting && <Loading className="size-5 border-white" />}
             </button>
           </Form>
         )}

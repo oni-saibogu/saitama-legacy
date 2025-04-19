@@ -6,12 +6,19 @@ import { createRoot } from "react-dom/client";
 
 import "./index.css";
 import App from "./App.tsx";
+import APIProvider from "./providers/APIProvider.tsx";
 import StoreProvider from "./providers/StoreProvider.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <StoreProvider>
-      <App />
+      <APIProvider
+        baseURL=""
+        apiKey=""
+        appId=""
+      >
+        <App />
+      </APIProvider>
     </StoreProvider>
   </StrictMode>
 );

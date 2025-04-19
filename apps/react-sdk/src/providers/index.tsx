@@ -8,12 +8,12 @@ import { mainnet } from "wagmi/chains";
 import { WagmiProvider, createConfig, http } from "wagmi";
 
 import { web3 } from "@coral-xyz/anchor";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import {
   ConnectionProvider,
   WalletProvider as SolanaWalletProvider,
 } from "@solana/wallet-adapter-react";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
 const client = new QueryClient();
 

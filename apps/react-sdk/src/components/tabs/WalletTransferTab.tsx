@@ -3,6 +3,7 @@ import { MdContentCopy } from "react-icons/md";
 import QRCode from "../QRCode";
 import { useAppSelector } from "../../store/hooks";
 import Timer from "../Timer";
+import Loading from "../Loading";
 
 type WalletTransferTabProps = {
   as?: React.ElementType;
@@ -67,7 +68,7 @@ export default function WalletTransferTab({
       </div>
       <button className="flex items-center justify-center space-x-4 bg-violet-700 text-white p-2.5 rounded-md">
         <span>Waiting for payment</span>
-        <div className="size-5 border-2 border-dashed rounded-full animate-spin animate-duration-2000" />
+        <Loading className="size-5 border-white" />
       </button>
     </As>
   );

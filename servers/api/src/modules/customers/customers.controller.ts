@@ -7,7 +7,16 @@ import type { insertCustomerSchema, selectCustomerSchema } from "../../db/zod";
 export const createCustomer = (
   db: Database,
   value: Zod.infer<typeof insertCustomerSchema>
-) => db.insert(customers).values(value).returning().execute();
+) =>
+  db
+    .insert(customers)
+    .values(value)
+    .onConflictDoUpdate({
+      target: [customers.app, customers.email],
+      set: value,
+    })
+    .returning()
+    .execute();
 
 export const getCustomersByAppWhere = (
   db: Database,
@@ -51,7 +60,7 @@ export const deleteCustomerByAppAndId = (
 ) =>
   db
     .delete(customers)
-    
+
     .where(and(eq(customers.id, id), eq(customers.app, app)))
     .returning()
     .execute();
