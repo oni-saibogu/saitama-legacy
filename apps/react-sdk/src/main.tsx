@@ -6,19 +6,16 @@ import { createRoot } from "react-dom/client";
 
 import "./index.css";
 import App from "./App.tsx";
-import APIProvider from "./providers/APIProvider.tsx";
-import StoreProvider from "./providers/StoreProvider.tsx";
+import Provider from "./providers";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <StoreProvider>
-      <APIProvider
-        baseURL=""
-        apiKey=""
-        appId=""
-      >
-        <App />
-      </APIProvider>
-    </StoreProvider>
+    <Provider
+      appId={import.meta.env.VITE_APP_APP_ID}
+      apiKey={import.meta.env.VITE_APP_API_KEY}
+      baseURL={import.meta.env.VITE_APP_BASE_API_URL}
+    >
+      <App />
+    </Provider>
   </StrictMode>
 );

@@ -23,6 +23,10 @@ export default function SelectCoinTab({
   const { network, customer, paymentLink } = useAppSelector(
     (state) => state.global
   );
+  const networkCoins = useMemo(
+    () => (network ? coins[network.data] : []),
+    [network]
+  );
 
   const onSelect = useCallback(
     async (coin: Coin[string][number]) => {
@@ -35,7 +39,7 @@ export default function SelectCoinTab({
 
         return api.payment
           .create({
-            amount: 10000,
+            amount: '10000',
             mint: coin.data,
             customer: customer.id,
             wallet: wallet.id,
@@ -52,10 +56,6 @@ export default function SelectCoinTab({
       }
     },
     [network, customer, api, paymentLink, dispatch, onNext]
-  );
-  const networkCoins = useMemo(
-    () => (network ? coins[network.name] : []),
-    [network]
   );
 
   return (

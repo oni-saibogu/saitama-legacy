@@ -109,30 +109,30 @@ export default function registerCustomerRoutes(fastify: FastifyInstance) {
       method: "POST",
       url: "/customers/",
       handler: RequestError.handler(createCustomerRoute),
-      preHandler: passport.authenticate("jwt"),
+      preHandler: passport.authenticate(["jwt", "apiKey"]),
     })
     .route({
       method: "GET",
       url: "/customers/",
       handler: RequestError.handler(getCustomersRoute),
-      preHandler: passport.authenticate("jwt"),
+      preHandler: passport.authenticate(["jwt", "apiKey"]),
     })
     .route({
       method: "GET",
       url: "/customers/:id/",
       handler: RequestError.handler(getCustomerRoute),
-      preHandler: passport.authenticate("jwt"),
+      preHandler: passport.authenticate(["jwt", "apiKey"]),
     })
     .route({
       method: "PATCH",
       url: "/customers/:id/",
       handler: RequestError.handler(updateCustomerRoute),
-      preHandler: passport.authenticate("jwt"),
+      preHandler: passport.authenticate(["jwt", "apiKey"]),
     })
     .route({
       method: "DELETE",
       url: "/customers/:id/",
       handler: RequestError.handler(deleteCustomerRoute),
-      preHandler: passport.authenticate("jwt"),
+      preHandler: passport.authenticate(["jwt", "apiKey"]),
     });
 }

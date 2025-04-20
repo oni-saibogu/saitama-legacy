@@ -1,5 +1,5 @@
 {
-  "id": "121b96db-ae33-43c8-b2bf-4719f28e6002",
+  "id": "8c8847d4-50fa-4ec6-9d1f-8428322f99cf",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -206,15 +206,7 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "apiKeys_app_unique": {
-          "name": "apiKeys_app_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "app"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -531,6 +523,18 @@
           "primaryKey": false,
           "notNull": true
         },
+        "firstName": {
+          "name": "firstName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lastName": {
+          "name": "lastName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "email": {
           "name": "email",
           "type": "text",
@@ -584,12 +588,12 @@
             "email"
           ]
         },
-        "customers_app_reference_unique": {
-          "name": "customers_app_reference_unique",
+        "customers_app_email_unique": {
+          "name": "customers_app_email_unique",
           "nullsNotDistinct": false,
           "columns": [
             "app",
-            "reference"
+            "email"
           ]
         }
       },

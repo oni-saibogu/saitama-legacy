@@ -115,30 +115,30 @@ export default function registerPaymentLinkRoutes(fastify: FastifyInstance) {
       method: "POST",
       url: "/payment-links/",
       handler: RequestError.handler(createPaymentLinkRoute),
-      preHandler: passport.authenticate("jwt"),
+      preHandler: passport.authenticate(["jwt", "apiKey"]),
     })
     .route({
       method: "GET",
       url: "/payment-links/",
       handler: RequestError.handler(getPaymentLinksRoute),
-      preHandler: passport.authenticate("jwt"),
+      preHandler: passport.authenticate(["jwt", "apiKey"]),
     })
     .route({
       method: "GET",
       url: "/payment-links/:id/",
       handler: RequestError.handler(getPaymentLinkRoute),
-      preHandler: passport.authenticate("jwt"),
+      preHandler: passport.authenticate(["jwt", "apiKey"]),
     })
     .route({
       method: "PATCH",
       url: "/payment-links/:id/",
       handler: RequestError.handler(updatePaymentLinkRoute),
-      preHandler: passport.authenticate("jwt"),
+      preHandler: passport.authenticate(["jwt", "apiKey"]),
     })
     .route({
       method: "DELETE",
       url: "/payment-links/:id/",
       handler: RequestError.handler(deletePaymentLinkRoute),
-      preHandler: passport.authenticate("jwt"),
+      preHandler: passport.authenticate(["jwt", "apiKey"]),
     });
 }

@@ -1,6 +1,11 @@
 import { useCallback } from "react";
-import { TabPanel } from "@headlessui/react";
-import { MdChevronRight } from "react-icons/md";
+import { MdExpandMore } from "react-icons/md";
+import {
+  TabPanel,
+  Popover,
+  PopoverButton,
+  PopoverPanel,
+} from "@headlessui/react";
 
 import { Network, networks } from "../../configs";
 import { useAppDispatch } from "../../store/hooks";
@@ -27,17 +32,61 @@ export default function SelectNetworkTab({
   );
 
   return (
-    <As className="flex-1 flex flex-col space-y-1 divide-y px-4 dark:divide-black">
-      {networks.map((network) => (
-        <button
-          className="flex text-start items-center space-x-2 p-2 bg-stone-100 rounded-md dark:bg-dark-200"
-          onClick={() => onSelect(network)}
-        >
-          <network.icon size={36} />
-          <span className="flex-1 capitalize">{network.name}</span>
-          <MdChevronRight className="text-xl hidden" />
-        </button>
+    <As className="flex-1 flex flex-col space-y-1 divide-y px-4 overflow-y-scroll dark:divide-black">
+      {networks.map((network, index) => (
+        <NetworkButton
+          key={index}
+          network={network}
+          onSelect={onSelect}
+        />
       ))}
     </As>
   );
 }
+
+type NetworkButtonProps = {
+  network: Network;
+  onSelect: (network: Network) => void;
+};
+
+const NetworkButton = ({ network, onSelect }: NetworkButtonProps) => {
+  const As = network.chains ? Popover : "div";
+  const Button = network.chains ? PopoverButton : "button";
+
+  return (
+    <As
+      as="div"
+      className="relative flex flex-col space-y-2"
+    >
+      <Button
+        className="flex text-start items-center space-x-2 !bg-stone-100 p-2 rounded-md dark:bg-dark-200"
+        onClick={() => {
+          if (network.chains) return;
+          onSelect(network);
+        }}
+      >
+        <network.icon size={36} />
+        <span className="flex-1 capitalize">{network.name}</span>
+        {network.chains && (
+          <button
+            aria-label="Expand"
+            className="p-2"
+          >
+            <MdExpandMore className="text-xl text-stone-700" />
+          </button>
+        )}
+      </Button>
+      {network.chains && (
+        <PopoverPanel className=" flex flex-col divide-y rounded-md bg-stone-100 dark:bg-dark-200 dark:divide-black">
+          {network.chains.map((chain, index) => (
+            <NetworkButton
+              key={index}
+              network={chain}
+              onSelect={onSelect}
+            />
+          ))}
+        </PopoverPanel>
+      )}
+    </As>
+  );
+};

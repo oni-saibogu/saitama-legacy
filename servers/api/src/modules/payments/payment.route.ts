@@ -84,24 +84,24 @@ export default function registerPaymentkoutes(fastify: FastifyInstance) {
       method: "POST",
       url: "/payments/",
       handler: RequestError.handler(createPaymentRoute),
-      preHandler: passport.authenticate("jwt"),
+      preHandler: passport.authenticate(["jwt", "apiKey"]),
     })
     .route({
       method: "GET",
       url: "/payments/",
       handler: RequestError.handler(getPaymentsRoute),
-      preHandler: passport.authenticate("jwt"),
+      preHandler: passport.authenticate(["jwt", "apiKey"]),
     })
     .route({
       method: "GET",
       url: "/payments/:id/",
       handler: RequestError.handler(getPaymentRoute),
-      preHandler: passport.authenticate("jwt"),
+      preHandler: passport.authenticate(["jwt", "apiKey"]),
     })
     .route({
       method: "PATCH",
       url: "/payments/:id/",
       handler: RequestError.handler(updatePaymentRoute),
-      preHandler: passport.authenticate("jwt"),
+      preHandler: passport.authenticate(["jwt", "apiKey"]),
     });
 }

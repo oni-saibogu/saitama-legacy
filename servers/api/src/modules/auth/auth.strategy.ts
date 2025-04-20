@@ -48,9 +48,9 @@ export class ApiKeyStrategy extends Strategy {
     const authorization = request.headers.authorization;
 
     if (authorization) {
-      const [, value] = authorization.split(/\s/g);
+      const [, value] = authorization.split(/\s+/g);
       if (value) {
-        db.query.apiKeys
+        return db.query.apiKeys
           .findFirst({
             where: eq(apiKeys.publicKey, value),
             with: {

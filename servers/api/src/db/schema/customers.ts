@@ -21,6 +21,6 @@ export const customers = pgTable(
     updatedAt: timestamp().defaultNow().notNull(),
   },
   (column) => ({
-    uniqueCustomer: unique().on(column.app, column.reference),
+    uniqueCustomer: unique().on(column.app, column.email),
   })
 );

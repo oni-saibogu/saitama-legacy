@@ -25,8 +25,7 @@ CREATE TABLE "apiKeys" (
 	"secretKey" text NOT NULL,
 	"publicKey" text NOT NULL,
 	"app" uuid NOT NULL,
-	"createdAt" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "apiKeys_app_unique" UNIQUE("app")
+	"createdAt" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "wallets" (
@@ -69,12 +68,14 @@ CREATE TABLE "customers" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"reference" text NOT NULL,
 	"app" uuid NOT NULL,
+	"firstName" text,
+	"lastName" text,
 	"email" text NOT NULL,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "customers_reference_unique" UNIQUE("reference"),
 	CONSTRAINT "customers_email_unique" UNIQUE("email"),
-	CONSTRAINT "customers_app_reference_unique" UNIQUE("app","reference")
+	CONSTRAINT "customers_app_email_unique" UNIQUE("app","email")
 );
 --> statement-breakpoint
 CREATE TABLE "paymentLinks" (

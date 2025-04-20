@@ -1,1 +1,0 @@
-ALTER TABLE "apiKeys" DROP CONSTRAINT "apiKeys_app_unique";
