@@ -21,7 +21,6 @@ declare module "fastify" {
   interface FastifyRequest {
     user: PassportUser;
   }
-
 }
 
 declare module "@fastify/secure-session" {
@@ -29,3 +28,5 @@ declare module "@fastify/secure-session" {
     ["app/jwt"]: string;
   }
 }
+
+declare module "@web3icons/core";

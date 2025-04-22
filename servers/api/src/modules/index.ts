@@ -2,7 +2,8 @@ import type { FastifyInstance } from "fastify";
 
 import registerAppRoutes from "./apps/app.route";
 import registerAuthRoutes from "./auth/auth.route";
-import registerUserRoutes from "./user/users.route";
+import registerUserRoutes from "./users/users.route";
+import registerCoinRoutes from "./coins/coins.router";
 import registerWalletRoutes from "./wallets/wallet.route";
 import registerApiKeyRoutes from "./api-keys/api-key.route";
 import registerPaymentRoutes from "./payments/payment.route";
@@ -14,6 +15,7 @@ export default function registerRoutes(fastify: FastifyInstance) {
   registerAppRoutes(fastify);
   registerAuthRoutes(fastify);
   registerUserRoutes(fastify);
+  registerCoinRoutes(fastify);
   registerApiKeyRoutes(fastify);
   registerWalletRoutes(fastify);
   registerPaymentRoutes(fastify);

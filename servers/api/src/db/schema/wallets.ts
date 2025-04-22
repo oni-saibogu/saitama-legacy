@@ -7,7 +7,9 @@ import {
   boolean,
   json,
 } from "drizzle-orm/pg-core";
+
 import { apps } from "./apps";
+import { chains } from "../../config";
 
 export const wallets = pgTable(
   "wallets",
@@ -19,7 +21,7 @@ export const wallets = pgTable(
     metadata: json(),
     address: text().notNull(),
     generated: boolean().default(false).notNull(),
-    chain: text({ enum: ["ethereum", "solana", "tron"] }).notNull(),
+    chain: text({ enum: chains }).notNull(),
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().notNull(),
   },

@@ -1,4 +1,5 @@
-import { useCallback } from "react";
+import type { Coin } from "@saitamafun/sdk";
+import { useCallback, useState } from "react";
 import { MdExpandMore } from "react-icons/md";
 import {
   TabPanel,
@@ -7,8 +8,9 @@ import {
   PopoverPanel,
 } from "@headlessui/react";
 
-import { type Network, networks } from "../../configs";
 import { useAppDispatch } from "../../store/hooks";
+import { useAPI } from "../../contexts/APIContext";
+import { type Network, networks } from "../../configs";
 import { globalActions, type GlobalState } from "../../store/global";
 
 type SelectNetworkTabProps = {
@@ -21,12 +23,20 @@ export default function SelectNetworkTab({
   onNext,
 }: SelectNetworkTabProps) {
   const As = as;
-
+  const { api } = useAPI();
   const dispatch = useAppDispatch();
+
   const onSelect = useCallback(
-    (network: GlobalState["network"]) => {
-      dispatch(globalActions.setNetwork(network));
-      onNext();
+    async (network: GlobalState["network"]) => {
+      return api.coin
+        .list({ chain: network.data })
+        .then(({ data }) => data)
+        .then((data) => {
+          dispatch(globalActions.setNetwork(network));
+          dispatch(globalActions.setCoins(data as unknown as Coin[]));
+
+          return onNext();
+        });
     },
     [dispatch, onNext]
   );
@@ -46,12 +56,14 @@ export default function SelectNetworkTab({
 
 type NetworkButtonProps = {
   network: Network;
-  onSelect: (network: GlobalState["network"]) => void;
+  onSelect: (network: GlobalState["network"]) => Promise<void>;
 };
 
 const NetworkButton = ({ network, onSelect }: NetworkButtonProps) => {
   const As = network.chains ? Popover : "div";
   const Button = network.chains ? PopoverButton : "button";
+
+  const [isLoading, setLoading] = useState(false);
 
   return (
     <As
@@ -59,13 +71,15 @@ const NetworkButton = ({ network, onSelect }: NetworkButtonProps) => {
       className="relative flex flex-col space-y-2"
     >
       <Button
+        disabled={isLoading}
         className="flex text-start items-center space-x-2 !bg-stone-100 p-2 rounded-md dark:bg-dark-200"
         onClick={() => {
           if (network.chains) return;
-          onSelect({
+          setLoading(true);
+          return onSelect({
             name: network.name,
             data: network.data,
-          });
+          }).finally(() => setLoading(false));
         }}
       >
         <network.icon size={36} />

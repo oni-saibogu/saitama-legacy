@@ -14,7 +14,7 @@ import { db } from "./instances";
 import { RequestError } from "./error";
 import registerRoutes from "./modules";
 import type { selectUserSchema } from "./db/zod";
-import { getUserById } from "./modules/user/users.controller";
+import { getUserById } from "./modules/users/users.controller";
 import { getAppByUserAndId } from "./modules/apps/app.controller";
 import { ApiKeyStrategy, FirebaseStrategy } from "./modules/auth/auth.strategy";
 

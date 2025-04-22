@@ -1,8 +1,10 @@
+import { object, string } from "zod";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 import {
   apiKeys,
   apps,
+  coins,
   customers,
   paymentLinks,
   payments,
@@ -10,19 +12,16 @@ import {
   wallets,
   webhooks,
 } from "./schema";
-import { object, string } from "zod";
 
 export const insertUserSchema = createInsertSchema(users, {
   email: (column) => column.email(),
 });
 export const selectUserSchema = createSelectSchema(users);
-export const selectUserByIdSchema = selectUserSchema.pick({ id: true });
 
 export const insertAppSchema = createInsertSchema(apps, {
   logo: (column) => column.url(),
 });
 export const selectAppSchema = createSelectSchema(apps);
-export const selectAppByIdSchema = selectAppSchema.pick({ id: true });
 
 export const selectApiKeySchema = createSelectSchema(apiKeys);
 export const insertApiKeySchema = createInsertSchema(apiKeys).omit({
@@ -41,8 +40,8 @@ export const insertWebhookSchema = createInsertSchema(webhooks, {
   url: (column) => column.url(),
 }).omit({ id: true, createdAt: true });
 export const selectWebhookSchema = createSelectSchema(webhooks);
-export const selectWebhookById = selectWebhookSchema.pick({ id: true });
 
+export const selectPaymentSchema = createSelectSchema(payments);
 export const insertPaymentSchema = createInsertSchema(payments).omit({
   id: true,
   createdAt: true,
@@ -61,7 +60,6 @@ export const insertPaymentLinkSchema = createInsertSchema(paymentLinks, {
 });
 
 export const selectCustomerSchema = createSelectSchema(customers);
-export const selectCustomerById = selectCustomerSchema.pick({ id: true });
 export const insertCustomerSchema = createInsertSchema(customers, {
   email: (column) => column.email(),
 }).omit({
@@ -69,5 +67,8 @@ export const insertCustomerSchema = createInsertSchema(customers, {
   createdAt: true,
 });
 
-export const selectPaymentSchema = createSelectSchema(payments);
-export const selectPaymentById = selectPaymentSchema.pick({ id: true });
+export const selectCoinSchema = createSelectSchema(coins);
+export const insertCoinSchema = createInsertSchema(coins).omit({
+  createdAt: true,
+  updatedAt: true,
+});

@@ -1,12 +1,13 @@
+import type { Coin } from "@saitamafun/sdk";
+
+import { useCallback, useState } from "react";
 import { TabPanel } from "@headlessui/react";
 import { MdChevronRight } from "react-icons/md";
-import { useCallback, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { coins } from "../../configs/coins";
 import { useAPI } from "../../contexts/APIContext";
 import withSuspense from "../../composables/withSuspense";
-import { globalActions, type GlobalState } from "../../store/global";
+import { coinsSelector, globalActions } from "../../store/global";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 type SelectCoinTabProps = {
@@ -24,16 +25,13 @@ export default withSuspense(function SelectCoinTab({
   const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
   const [isSubmitting, setSubmitting] = useState(false);
-  const { network, customer, paymentLink } = useAppSelector(
+  const { coinsState, network, customer, paymentLink } = useAppSelector(
     (state) => state.global
   );
-  const networkCoins = useMemo(
-    () => (network ? coins[network.data] : []),
-    [network]
-  );
+  const coins = coinsSelector.selectAll(coinsState);
 
   const onSelect = useCallback(
-    async (coin: GlobalState["coin"]) => {
+    async (coin: Coin) => {
       if (network && customer && paymentLink) {
         const wallet = await api.wallet
           .create({
@@ -44,18 +42,13 @@ export default withSuspense(function SelectCoinTab({
         return api.payment
           .create({
             amount: "10000",
-            mint: coin.data,
-            customer: customer.id,
+            coin: coin.id,
             wallet: wallet.id,
+            customer: customer.id,
             paymentLink: paymentLink.id,
           })
           .then(({ data }) => {
-            dispatch(
-              globalActions.setCoin({
-                name: coin.name,
-                data: coin.data,
-              })
-            );
+            dispatch(globalActions.setCoin(coin));
             dispatch(globalActions.setPayment(data));
             const params = new URLSearchParams(searchParams);
             params.set("payment", data.id);
@@ -70,7 +63,7 @@ export default withSuspense(function SelectCoinTab({
 
   return (
     <As className="flex-1 flex flex-col space-y-1 divide-y px-4 overflow-y-scroll dark:divide-black">
-      {networkCoins.map((coin, index) => (
+      {coins.map((coin, index) => (
         <button
           key={index}
           disabled={isSubmitting}
@@ -80,7 +73,11 @@ export default withSuspense(function SelectCoinTab({
             onSelect(coin).finally(() => setSubmitting(false));
           }}
         >
-          <coin.icon size={36} />
+          <img
+            src={coin.logo}
+            width={32}
+            height={32}
+          />
           <span className="flex-1 capitalize">{coin.name}</span>
           <MdChevronRight className="text-xl hidden" />
         </button>

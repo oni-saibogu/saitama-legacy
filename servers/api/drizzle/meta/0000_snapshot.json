@@ -1,5 +1,5 @@
 {
-  "id": "8c8847d4-50fa-4ec6-9d1f-8428322f99cf",
+  "id": "c5da2457-8619-4de2-9b75-c90371d71c10",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -145,6 +145,106 @@
           "nullsNotDistinct": false,
           "columns": [
             "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.coins": {
+      "name": "coins",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "mint": {
+          "name": "mint",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ticker": {
+          "name": "ticker",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "logo": {
+          "name": "logo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "decimals": {
+          "name": "decimals",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chain": {
+          "name": "chain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "creator": {
+          "name": "creator",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "coins_creator_users_id_fk": {
+          "name": "coins_creator_users_id_fk",
+          "tableFrom": "coins",
+          "tableTo": "users",
+          "columnsFrom": [
+            "creator"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "coins_mint_chain_name_unique": {
+          "name": "coins_mint_chain_name_unique",
+          "nullsNotDistinct": true,
+          "columns": [
+            "mint",
+            "chain",
+            "name"
           ]
         }
       },
@@ -316,11 +416,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "mint": {
-          "name": "mint",
+        "coin": {
+          "name": "coin",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "signature": {
           "name": "signature",
@@ -377,6 +477,19 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "payments_coin_coins_id_fk": {
+          "name": "payments_coin_coins_id_fk",
+          "tableFrom": "payments",
+          "tableTo": "coins",
+          "columnsFrom": [
+            "coin"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "payments_paymentLink_paymentLinks_id_fk": {
           "name": "payments_paymentLink_paymentLinks_id_fk",
           "tableFrom": "payments",
@@ -418,15 +531,7 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "signature": {
-          "name": "signature",
-          "nullsNotDistinct": true,
-          "columns": [
-            "signature"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

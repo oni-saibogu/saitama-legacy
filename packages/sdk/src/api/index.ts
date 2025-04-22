@@ -7,13 +7,15 @@ import { WebhookApi } from "./webhook.api";
 import { PaymentApi } from "./payment.api";
 import { CustomerApi } from "./customer.api";
 import { PaymentLinkApi } from "./paymentLink.api";
+import { CoinApi } from "./coin.api";
 
-export * from "./models";
+export type * from "./models";
 
 export class Api {
   private readonly xior: XiorInstance;
 
   readonly app: AppApi;
+  readonly coin: CoinApi;
   readonly apiKey: ApiKeyApi;
   readonly wallet: WalletApi;
   readonly payment: PaymentApi;
@@ -38,6 +40,7 @@ export class Api {
     });
 
     this.app = new AppApi(this.xior);
+    this.coin = new CoinApi(this.xior);
     this.apiKey = new ApiKeyApi(this.xior);
     this.wallet = new WalletApi(this.xior);
     this.webhook = new WebhookApi(this.xior);

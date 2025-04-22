@@ -1,13 +1,7 @@
 import crypto from "crypto";
-import {
-  json,
-  pgTable,
-  text,
-  timestamp,
-  unique,
-  uuid,
-} from "drizzle-orm/pg-core";
+import { json, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
+import { coins } from "./coins";
 import { wallets } from "./wallets";
 import { customers } from "./customers";
 import { paymentLinks } from "./paymentLinks";
@@ -17,7 +11,9 @@ const generatePaymentId = () => "PAY-" + crypto.randomBytes(8).toString("hex");
 export const payments = pgTable("payments", {
   id: text().$defaultFn(generatePaymentId).primaryKey(),
   amount: text().notNull(),
-  mint: text(),
+  coin: text()
+    .references(() => coins.id, { onDelete: "cascade" })
+    .notNull(),
   signature: text(),
   paymentLink: uuid()
     .references(() => paymentLinks.id, { onDelete: "cascade" })

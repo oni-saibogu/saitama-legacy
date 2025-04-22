@@ -1,3 +1,4 @@
+import type { Coin } from "./coin.model";
 import type { Wallet } from "./wallet.model";
 import type { Customer } from "./customer.model";
 import type { PaymentLink } from "./paymentLink.model";
@@ -6,7 +7,7 @@ export type Payment<T extends object = object> = {
   id: string;
   amount: string;
   metadata?: T;
-  mint?: string;
+  coin: Coin;
   wallet: Wallet;
   customer: Customer;
   createdAt: string;

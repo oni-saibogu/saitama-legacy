@@ -1,16 +1,20 @@
-import { createSlice } from "@reduxjs/toolkit";
-import type { Customer, Payment, PaymentLink } from "@saitamafun/sdk";
+import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
+import type { Coin, Customer, Payment, PaymentLink } from "@saitamafun/sdk";
 
-import { Network } from "../configs";
-import { Coin } from "../configs/coins";
+import type { Network } from "../configs";
 
 export type GlobalState = {
+  coin: Coin;
   payment: Payment | null;
-  network: Omit<Network, "icon" | "chains"> | null;
   customer: Customer | null;
   paymentLink: PaymentLink | null;
-  coin: Omit<Coin[string][number], "icon"> | null;
+  network: Omit<Network, "icon" | "chains"> | null;
+  coinsState: ReturnType<typeof coinsEntityAdapter.getInitialState>;
 };
+
+const coinsEntityAdapter = createEntityAdapter({
+  selectId: (model: Coin) => model.id,
+});
 
 const globalSlice = createSlice({
   name: "global",
@@ -20,6 +24,7 @@ const globalSlice = createSlice({
     customer: null,
     payment: null,
     paymentLink: null,
+    coinsState: coinsEntityAdapter.getInitialState(),
   }),
   reducers: {
     setCustomer(state, { payload }: { payload: Customer }) {
@@ -37,8 +42,12 @@ const globalSlice = createSlice({
     setPaymentLink(state, { payload }: { payload: PaymentLink }) {
       state.paymentLink = payload;
     },
+    setCoins: (state, { payload }: { payload: Coin[] }) => {
+      coinsEntityAdapter.setAll(state.coinsState, payload);
+    },
   },
 });
 
 export const globalReducer = globalSlice.reducer;
 export const globalActions = globalSlice.actions;
+export const coinsSelector = coinsEntityAdapter.getSelectors();
