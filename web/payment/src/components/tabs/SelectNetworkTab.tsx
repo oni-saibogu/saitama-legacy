@@ -7,9 +7,9 @@ import {
   PopoverPanel,
 } from "@headlessui/react";
 
-import { Network, networks } from "../../configs";
+import { type Network, networks } from "../../configs";
 import { useAppDispatch } from "../../store/hooks";
-import { globalActions } from "../../store/global";
+import { globalActions, type GlobalState } from "../../store/global";
 
 type SelectNetworkTabProps = {
   as?: React.ElementType;
@@ -24,7 +24,7 @@ export default function SelectNetworkTab({
 
   const dispatch = useAppDispatch();
   const onSelect = useCallback(
-    (network: Network) => {
+    (network: GlobalState["network"]) => {
       dispatch(globalActions.setNetwork(network));
       onNext();
     },
@@ -46,7 +46,7 @@ export default function SelectNetworkTab({
 
 type NetworkButtonProps = {
   network: Network;
-  onSelect: (network: Network) => void;
+  onSelect: (network: GlobalState["network"]) => void;
 };
 
 const NetworkButton = ({ network, onSelect }: NetworkButtonProps) => {
@@ -62,18 +62,21 @@ const NetworkButton = ({ network, onSelect }: NetworkButtonProps) => {
         className="flex text-start items-center space-x-2 !bg-stone-100 p-2 rounded-md dark:bg-dark-200"
         onClick={() => {
           if (network.chains) return;
-          onSelect(network);
+          onSelect({
+            name: network.name,
+            data: network.data,
+          });
         }}
       >
         <network.icon size={36} />
         <span className="flex-1 capitalize">{network.name}</span>
         {network.chains && (
-          <button
+          <div
             aria-label="Expand"
             className="p-2"
           >
             <MdExpandMore className="text-xl text-stone-700" />
-          </button>
+          </div>
         )}
       </Button>
       {network.chains && (

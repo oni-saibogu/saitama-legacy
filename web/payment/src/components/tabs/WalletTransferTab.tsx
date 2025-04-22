@@ -1,9 +1,10 @@
 import { TabPanel } from "@headlessui/react";
 import { MdContentCopy } from "react-icons/md";
-import QRCode from "../QRCode";
-import { useAppSelector } from "../../store/hooks";
+
 import Timer from "../Timer";
+import QRCode from "../QRCode";
 import Loading from "../Loading";
+import { useAppSelector } from "../../store/hooks";
 
 type WalletTransferTabProps = {
   as?: React.ElementType;
@@ -14,7 +15,7 @@ export default function WalletTransferTab({
   as = TabPanel,
 }: WalletTransferTabProps) {
   const As = as;
-  const { network, coin} = useAppSelector(state => state.global);
+  const { payment, network, coin } = useAppSelector((state) => state.global);
 
   return (
     <As className="flex-1 flex flex-col space-y-4 px-4 pb-4 overflow-y-scroll">
@@ -22,9 +23,13 @@ export default function WalletTransferTab({
         <div className="flex items-center space-x-4">
           <div>
             <p>
-              Send <b className="text-violet-700 dark:text-violet">{ coin?.name}</b>
+              Send&nbsp;
+              <b className="text-violet-700 dark:text-violet">{coin?.name}</b>
               &nbsp;via&nbsp;
-              <b className="text-violet-700 capitalize dark:text-violet">{ network?.name}</b> Network
+              <b className="text-violet-700 capitalize dark:text-violet">
+                {payment.wallet.chain}
+              </b>
+              &nbsp;Network
             </p>
             <p className="text-xs text-black/75 dark:text-stone-300 md:text-sm">
               Open your crypto wallet or exchange and complete this payment
@@ -32,13 +37,13 @@ export default function WalletTransferTab({
             </p>
           </div>
           <div>
-           <Timer maxTimeInMinutes={9} />
+            <Timer maxTimeInMinutes={9} />
           </div>
         </div>
         <div className="my-auto flex flex-col space-y-4">
           <QRCode
             className="m-auto w-56 h-56 rounded-md"
-            data="0x92F8055f5839F478B87aDFEc5C10BFe72185042F"
+            data={payment.wallet.address}
           />
           <div className="flex flex-col divide-y bg-black/5 rounded-md dark:bg-dark-200/75 dark:divide-black">
             <div className="px-4 py-2">
@@ -56,7 +61,7 @@ export default function WalletTransferTab({
               <p className="font-medium">Address</p>
               <div className="flex items-center space-x-4">
                 <p className="text-xs text-black/50 truncate dark:text-stone-300 md:text-sm">
-                  0x92F8055f5839F478B87aDFEc5C10BFe72185042F
+                  {payment.wallet.address}
                 </p>
                 <button>
                   <MdContentCopy />

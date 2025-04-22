@@ -4,12 +4,12 @@ import type { Customer, Payment, PaymentLink } from "@saitamafun/sdk";
 import { Network } from "../configs";
 import { Coin } from "../configs/coins";
 
-type GlobalState = {
+export type GlobalState = {
   payment: Payment | null;
-  network: Network | null;
+  network: Omit<Network, "icon" | "chains"> | null;
   customer: Customer | null;
   paymentLink: PaymentLink | null;
-  coin: Coin[string][number] | null;
+  coin: Omit<Coin[string][number], "icon"> | null;
 };
 
 const globalSlice = createSlice({
@@ -25,10 +25,10 @@ const globalSlice = createSlice({
     setCustomer(state, { payload }: { payload: Customer }) {
       state.customer = payload;
     },
-    setNetwork(state, { payload }: { payload: Network }) {
+    setNetwork(state, { payload }: { payload: GlobalState["network"] }) {
       state.network = payload;
     },
-    setCoin(state, { payload }: { payload: Coin[string][number] }) {
+    setCoin(state, { payload }: { payload: GlobalState["coin"] }) {
       state.coin = payload;
     },
     setPayment(state, { payload }: { payload: Payment }) {

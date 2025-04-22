@@ -1,18 +1,16 @@
-import { useSearchParam } from "react-use";
-import { useQuery } from "@tanstack/react-query";
+"use client";
+
 import { MdChevronLeft, MdClose } from "react-icons/md";
 import { Fragment, useCallback, useMemo, useState } from "react";
 import { TabGroup, TabList, Tab, TabPanel, TabPanels } from "@headlessui/react";
 
-import Modal from "../Model";
+import Modal from "../Modal";
 import SignUpTab from "../tabs/SignUpTab";
 import SelectCoinTab from "../tabs/SelectCoinTab";
 import { useAPI } from "../../contexts/APIContext";
-import { useAppDispatch } from "../../store/hooks";
-import { globalActions } from "../../store/global";
 import SelectNetworkTab from "../tabs/SelectNetworkTab";
 import WalletTransferTab from "../tabs/WalletTransferTab";
-import Loading from "../Loading";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 const tabs = [
   { name: "Sign up", component: SignUpTab },
@@ -23,11 +21,13 @@ const tabs = [
 
 export default function PaymentModal() {
   const { api } = useAPI();
-  const dispatch = useAppDispatch();
   const [open, setOpen] = useState(true);
-  const paymentLinkId = useSearchParam("paymentLink");
+  const { payment } = useAppSelector((state) => state.global);
 
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(() => {
+    if (payment) return 3;
+    else return 0;
+  });
   const canBack = useMemo(() => selectedIndex > 0, [selectedIndex]);
   const currentTab = useMemo(() => tabs[selectedIndex], [selectedIndex]);
 
@@ -40,18 +40,6 @@ export default function PaymentModal() {
     if (canBack) return;
     onBack();
   }, [canBack, onBack]);
-
-  const { isFetching } = useQuery({
-    queryKey: [paymentLinkId],
-    queryFn: () => {
-      if (paymentLinkId)
-        return api.paymentLink.retrieve(paymentLinkId).then(({ data }) => {
-          dispatch(globalActions.setPaymentLink(data));
-          return data;
-        });
-    },
-    enabled: !!paymentLinkId,
-  });
 
   return (
     <TabGroup
@@ -78,11 +66,6 @@ export default function PaymentModal() {
           </div>
         }
       >
-        {isFetching && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/25 rounded-md">
-            <Loading className="size-8 border-white" />
-          </div>
-        )}
         <TabPanels as={Fragment}>
           {tabs.map((tab, index) => (
             <tab.component

@@ -8,3 +8,4 @@ dist
 out
 apps/examples
 serviceAccount.json
+.next

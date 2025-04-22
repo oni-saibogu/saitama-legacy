@@ -11,6 +11,6 @@ export default function registerUserRoutes(fastify: FastifyInstance) {
     method: "GET",
     url: "/users/me/",
     handler: RequestError.handler(getUserRoute),
-    preHandler: passport.authenticate("jwt"),
+    preHandler: passport.authenticate(["jwt", "firebase"]),
   });
 }

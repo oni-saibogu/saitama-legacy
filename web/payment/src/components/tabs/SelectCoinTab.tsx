@@ -1,10 +1,12 @@
 import { TabPanel } from "@headlessui/react";
 import { MdChevronRight } from "react-icons/md";
 import { useCallback, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-import { Coin, coins } from "../../configs/coins";
-import { globalActions } from "../../store/global";
+import { coins } from "../../configs/coins";
 import { useAPI } from "../../contexts/APIContext";
+import withSuspense from "../../composables/withSuspense";
+import { globalActions, type GlobalState } from "../../store/global";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 type SelectCoinTabProps = {
@@ -12,13 +14,15 @@ type SelectCoinTabProps = {
   onNext: React.Dispatch<React.SetStateAction<void>>;
 };
 
-export default function SelectCoinTab({
+export default withSuspense(function SelectCoinTab({
   as = TabPanel,
   onNext,
 }: SelectCoinTabProps) {
   const As = as;
   const { api } = useAPI();
+  const router = useRouter();
   const dispatch = useAppDispatch();
+  const searchParams = useSearchParams();
   const [isSubmitting, setSubmitting] = useState(false);
   const { network, customer, paymentLink } = useAppSelector(
     (state) => state.global
@@ -29,7 +33,7 @@ export default function SelectCoinTab({
   );
 
   const onSelect = useCallback(
-    async (coin: Coin[string][number]) => {
+    async (coin: GlobalState["coin"]) => {
       if (network && customer && paymentLink) {
         const wallet = await api.wallet
           .create({
@@ -39,18 +43,24 @@ export default function SelectCoinTab({
 
         return api.payment
           .create({
-            amount: '10000',
+            amount: "10000",
             mint: coin.data,
             customer: customer.id,
             wallet: wallet.id,
             paymentLink: paymentLink.id,
           })
           .then(({ data }) => {
-            dispatch(globalActions.setCoin(coin));
+            dispatch(
+              globalActions.setCoin({
+                name: coin.name,
+                data: coin.data,
+              })
+            );
             dispatch(globalActions.setPayment(data));
-            const searchParams = new URLSearchParams(window.location.search);
-            searchParams.set("payment", data.id);
-            window.location.search = searchParams.toString();
+            const params = new URLSearchParams(searchParams);
+            params.set("payment", data.id);
+            router.push("?" + params.toString());
+
             return onNext();
           });
       }
@@ -60,8 +70,9 @@ export default function SelectCoinTab({
 
   return (
     <As className="flex-1 flex flex-col space-y-1 divide-y px-4 overflow-y-scroll dark:divide-black">
-      {networkCoins.map((coin) => (
+      {networkCoins.map((coin, index) => (
         <button
+          key={index}
           disabled={isSubmitting}
           className="flex text-start items-center space-x-2 p-2 bg-stone-100 rounded-md dark:bg-dark-200"
           onClick={() => {
@@ -76,4 +87,4 @@ export default function SelectCoinTab({
       ))}
     </As>
   );
-}
+});

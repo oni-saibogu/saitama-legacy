@@ -1,7 +1,7 @@
 import { and, eq, getTableColumns, SQL } from "drizzle-orm";
 
 import type { Database } from "../../db";
-import { paymentLinks, payments } from "../../db/schema";
+import { paymentLinks, payments, wallets } from "../../db/schema";
 import type {
   insertPaymentSchema,
   selectAppSchema,
@@ -40,6 +40,7 @@ export const getPaymentByAppAndId = (
   return db
     .select({
       ...getTableColumns(payments),
+      wallet: getTableColumns(wallets),
       paymentLink: getTableColumns(paymentLinks),
     })
     .from(payments)
@@ -47,6 +48,10 @@ export const getPaymentByAppAndId = (
     .innerJoin(
       paymentLinks,
       and(eq(paymentLinks.app, app), eq(paymentLinks.id, payments.paymentLink))
+    )
+    .innerJoin(
+      wallets,
+      and(eq(wallets.app, app), eq(wallets.id, payments.wallet))
     )
     .execute();
 };
