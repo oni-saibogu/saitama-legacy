@@ -1,6 +1,6 @@
-import type { Coin } from "@saitamafun/sdk";
 import { useCallback, useState } from "react";
 import { MdExpandMore } from "react-icons/md";
+import type { Network } from "@saitamafun/sdk";
 import {
   TabPanel,
   Popover,
@@ -8,9 +8,10 @@ import {
   PopoverPanel,
 } from "@headlessui/react";
 
-import { useAppDispatch } from "../../store/hooks";
+import { toSVGURL } from "../../utils/svgUtils";
 import { useAPI } from "../../contexts/APIContext";
-import { type Network, networks } from "../../configs";
+import { networksSelector } from "../../store/configs";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { globalActions, type GlobalState } from "../../store/global";
 
 type SelectNetworkTabProps = {
@@ -25,18 +26,13 @@ export default function SelectNetworkTab({
   const As = as;
   const { api } = useAPI();
   const dispatch = useAppDispatch();
+  const { networkState } = useAppSelector((state) => state.configs);
+  const networks = networksSelector.selectAll(networkState);
 
   const onSelect = useCallback(
-    async (network: GlobalState["network"]) => {
-      return api.coin
-        .list({ chain: network.data })
-        .then(({ data }) => data)
-        .then((data) => {
-          dispatch(globalActions.setNetwork(network));
-          dispatch(globalActions.setCoins(data as unknown as Coin[]));
-
-          return onNext();
-        });
+    async (network: Network) => {
+      dispatch(globalActions.setNetwork(network));
+      return onNext();
     },
     [dispatch, onNext]
   );
@@ -60,8 +56,8 @@ type NetworkButtonProps = {
 };
 
 const NetworkButton = ({ network, onSelect }: NetworkButtonProps) => {
-  const As = network.chains ? Popover : "div";
-  const Button = network.chains ? PopoverButton : "button";
+  const As = network.subchains ? Popover : "div";
+  const Button = network.subchains ? PopoverButton : "button";
 
   const [isLoading, setLoading] = useState(false);
 
@@ -74,17 +70,19 @@ const NetworkButton = ({ network, onSelect }: NetworkButtonProps) => {
         disabled={isLoading}
         className="flex text-start items-center space-x-2 !bg-stone-100 p-2 rounded-md dark:bg-dark-200"
         onClick={() => {
-          if (network.chains) return;
+          if (network.subchains) return;
           setLoading(true);
-          return onSelect({
-            name: network.name,
-            data: network.data,
-          }).finally(() => setLoading(false));
+          return onSelect(network).finally(() => setLoading(false));
         }}
       >
-        <network.icon size={36} />
+        <img
+          src={toSVGURL(network.logo)}
+          width={32}
+          height={32}
+          alt={network.name}
+        />
         <span className="flex-1 capitalize">{network.name}</span>
-        {network.chains && (
+        {network.subchains && (
           <div
             aria-label="Expand"
             className="p-2"
@@ -93,9 +91,9 @@ const NetworkButton = ({ network, onSelect }: NetworkButtonProps) => {
           </div>
         )}
       </Button>
-      {network.chains && (
+      {network.subchains && (
         <PopoverPanel className=" flex flex-col divide-y rounded-md bg-stone-100 dark:bg-dark-200 dark:divide-black">
-          {network.chains.map((chain, index) => (
+          {network.subchains.map((chain, index) => (
             <NetworkButton
               key={index}
               network={chain}

@@ -1,11 +1,14 @@
+import type { Network } from "./network.model";
+
 export type Coin = {
   id: string;
   mint?: string;
   name: string;
+  ticker: string;
   logo: string;
   decimals: number;
-  chain: "solana" | "ethereum" | "tron";
   creator?: string;
   createdAt: string;
   updatedAt: string;
+  network: Network | string;
 };

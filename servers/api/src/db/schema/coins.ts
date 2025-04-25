@@ -7,7 +7,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { users } from "./users";
-import { chains } from "../../config";
+import { networks } from "./networks";
 
 export const coins = pgTable(
   "coins",
@@ -18,14 +18,16 @@ export const coins = pgTable(
     ticker: text().notNull(),
     logo: text().notNull(),
     decimals: integer().notNull(),
-    chain: text({ enum: chains }).notNull(),
+    network: uuid()
+      .references(() => networks.id)
+      .notNull(),
     creator: text().references(() => users.id),
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().notNull(),
   },
   (column) => ({
     uniqueCoin: unique()
-      .on(column.mint, column.chain, column.name)
+      .on(column.mint, column.network, column.name)
       .nullsNotDistinct(),
   })
 );

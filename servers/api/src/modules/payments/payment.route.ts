@@ -35,7 +35,7 @@ const getPaymentRoute = (
       .pick({ id: true })
       .parseAsync(request.params)
       .then(async ({ id }) => {
-        const [payment] = await getPaymentByAppAndId(db, user.app.id, id);
+        const payment = await getPaymentByAppAndId(db, user.app.id, id);
         if (payment) return payment;
 
         throw new RequestError(404, format("payment with id=% not found", id));

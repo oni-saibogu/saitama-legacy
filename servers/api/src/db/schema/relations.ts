@@ -8,6 +8,8 @@ import { wallets } from "./wallets";
 import { webhooks } from "./webhooks";
 import { customers } from "./customers";
 import { paymentLinks } from "./paymentLinks";
+import { coins } from "./coins";
+import { networks } from "./networks";
 
 export const usersRelations = relations(users, ({ many }) => ({
   apps: many(apps),
@@ -34,6 +36,22 @@ export const webhooksRelations = relations(webhooks, ({ one }) => ({
   }),
 }));
 
+export const networkRelations = relations(networks, ({ one, many }) => ({
+  parent: one(networks, {
+    fields: [networks.parent],
+    references: [networks.id],
+  }),
+  subchains: many(networks, { relationName: "parent" }),
+  coins: many(coins),
+}));
+
+export const coinRelations = relations(coins, ({ one }) => ({
+  network: one(networks, {
+    fields: [coins.network],
+    references: [networks.id],
+  }),
+}));
+
 export const walletsRelations = relations(wallets, ({ one }) => ({
   app: one(apps, {
     fields: [wallets.app],
@@ -57,6 +75,7 @@ export const paymentRelations = relations(payments, ({ one }) => ({
     fields: [payments.customer],
     references: [customers.id],
   }),
+  coin: one(coins, { fields: [payments.coin], references: [coins.id] }),
   wallet: one(wallets, {
     fields: [payments.wallet],
     references: [wallets.id],

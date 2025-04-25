@@ -1,13 +1,14 @@
 import xior, { type XiorInstance } from "xior";
 
 import { AppApi } from "./app.api";
+import { CoinApi } from "./coin.api";
 import { WalletApi } from "./wallet.api";
 import { ApiKeyApi } from "./apiKey.api";
 import { WebhookApi } from "./webhook.api";
 import { PaymentApi } from "./payment.api";
 import { CustomerApi } from "./customer.api";
+import { NetworkApi } from "./network.api";
 import { PaymentLinkApi } from "./paymentLink.api";
-import { CoinApi } from "./coin.api";
 
 export type * from "./models";
 
@@ -20,6 +21,7 @@ export class Api {
   readonly wallet: WalletApi;
   readonly payment: PaymentApi;
   readonly webhook: WebhookApi;
+  readonly network: NetworkApi;
   readonly customer: CustomerApi;
   readonly paymentLink: PaymentLinkApi;
 
@@ -45,6 +47,7 @@ export class Api {
     this.wallet = new WalletApi(this.xior);
     this.webhook = new WebhookApi(this.xior);
     this.payment = new PaymentApi(this.xior);
+    this.network = new NetworkApi(this.xior);
     this.customer = new CustomerApi(this.xior);
     this.paymentLink = new PaymentLinkApi(this.xior);
   }

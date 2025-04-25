@@ -20,12 +20,11 @@ const tabs = [
 ];
 
 export default function PaymentModal() {
-  const { api } = useAPI();
   const [open, setOpen] = useState(true);
   const { payment } = useAppSelector((state) => state.global);
 
   const [selectedIndex, setSelectedIndex] = useState(() => {
-    if (payment) return 3;
+    if (payment) return tabs.length - 1;
     else return 0;
   });
   const canBack = useMemo(() => selectedIndex > 0, [selectedIndex]);

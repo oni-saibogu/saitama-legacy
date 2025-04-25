@@ -1,3 +1,6 @@
+import moment from "moment";
+import { useMemo } from "react";
+import { BN } from "@coral-xyz/anchor";
 import { TabPanel } from "@headlessui/react";
 import { MdContentCopy } from "react-icons/md";
 
@@ -5,6 +8,7 @@ import Timer from "../Timer";
 import QRCode from "../QRCode";
 import Loading from "../Loading";
 import { useAppSelector } from "../../store/hooks";
+import { getObjectKeyOrThrow } from "../../utils/objectUtils";
 
 type WalletTransferTabProps = {
   as?: React.ElementType;
@@ -15,22 +19,29 @@ export default function WalletTransferTab({
   as = TabPanel,
 }: WalletTransferTabProps) {
   const As = as;
-  const { payment, network, coin } = useAppSelector((state) => state.global);
+  const { payment } = useAppSelector((state) => state.global);
+
+  const coin = useMemo(() => getObjectKeyOrThrow(payment, "coin"), [payment]);
+  const network = useMemo(() => getObjectKeyOrThrow(coin, "network"), [coin]);
+  const wallet = useMemo(
+    () => getObjectKeyOrThrow(payment, "wallet"),
+    [payment]
+  );
+
+  console.log(payment, network, coin, wallet);
 
   return (
-    payment &&
-    network &&
-    coin && (
+    payment && (
       <As className="flex-1 flex flex-col space-y-4 px-4 pb-4 overflow-y-scroll">
-        <div className="flex-1 flex flex-col space-y-4 overflow-y-scrol">
+        <div className="flex-1 flex flex-col space-y-4 overflow-y-scroll">
           <div className="flex items-center space-x-4">
             <div>
               <p>
                 Send&nbsp;
-                <b className="text-violet-700 dark:text-violet">{coin.name}</b>
+                <b className="text-violet-700 dark:text-violet">{coin.ticker}</b>
                 &nbsp;via&nbsp;
                 <b className="text-violet-700 capitalize dark:text-violet">
-                  {coin.chain}
+                  {network.name}
                 </b>
                 &nbsp;Network
               </p>
@@ -40,20 +51,30 @@ export default function WalletTransferTab({
               </p>
             </div>
             <div>
-              <Timer maxTimeInMinutes={9} />
+              <Timer
+                epoch={moment(payment.createdAt)}
+                maxTimeInMinutes={9}
+              />
             </div>
           </div>
           <div className="my-auto flex flex-col space-y-4">
             <QRCode
               className="m-auto w-56 h-56 rounded-md"
-              data={payment.wallet.address}
+              data={wallet.address}
             />
             <div className="flex flex-col divide-y bg-black/5 rounded-md dark:bg-dark-200/75 dark:divide-black">
               <div className="px-4 py-2">
                 <p className="font-medium">Amount</p>
                 <div className="flex items-center">
                   <p className="flex-1 text-xs text-black/50 dark:text-stone-300 md:text-sm">
-                    4.00 USDC
+                    {/* {unsafeBnToNumber(
+                      safeBN(payment.amount).div(
+                        new BN(10).pow(new BN(coin.decimals))
+                      ),
+                      coin.decimals
+                    )} */}
+                    &nbsp;
+                    {coin.ticker}
                   </p>
                   <button>
                     <MdContentCopy />
@@ -64,7 +85,7 @@ export default function WalletTransferTab({
                 <p className="font-medium">Address</p>
                 <div className="flex items-center space-x-4">
                   <p className="text-xs text-black/50 truncate dark:text-stone-300 md:text-sm">
-                    {payment.wallet.address}
+                    {wallet.address}
                   </p>
                   <button>
                     <MdContentCopy />

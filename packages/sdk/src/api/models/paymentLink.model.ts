@@ -1,3 +1,5 @@
+import type { Network } from "./network.model";
+
 export type PaymentLink = {
   id: string;
   name: string;
@@ -7,7 +9,7 @@ export type PaymentLink = {
     amount: string;
     currency: "USD" | "EUR";
   };
-  chains: ("solana" | "ethereum" | "tron")[];
+  networks: (Network | string)[];
   createdAt: string;
   updatedAt: string;
 };

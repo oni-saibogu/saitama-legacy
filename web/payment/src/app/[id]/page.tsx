@@ -2,7 +2,6 @@ import { Api, type Payment } from "@saitamafun/sdk";
 
 import Provider from "../../providers";
 import PaymentModal from "../../components/payments";
-import { StoreIntialState } from "../../providers/StoreProvider";
 
 export default async function PaymentPage({
   params,
@@ -16,9 +15,10 @@ export default async function PaymentPage({
   const apiBaseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const api = new Api(apiBaseURL, apiKey, appId);
-  const paymentLink = await api.paymentLink
-    .retrieve(id)
-    .then(({ data }) => data);
+  const [networks, paymentLink] = await Promise.all([
+    api.network.list().then(({ data }) => data),
+    api.paymentLink.retrieve(id).then(({ data }) => data),
+  ]);
 
   let payment: Payment | null = null;
 
@@ -31,6 +31,7 @@ export default async function PaymentPage({
       apiKey={apiKey}
       baseURL={apiBaseURL}
       payment={payment}
+      networks={networks}
       paymentLink={paymentLink}
     >
       <PaymentModal />

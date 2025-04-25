@@ -1,6 +1,6 @@
 {
-  "id": "2e6ff342-9fea-446d-bfe3-e3169d1f8a0b",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "3182a358-f82f-4397-bff8-0e33d0c84b14",
+  "prevId": "2e6ff342-9fea-446d-bfe3-e3169d1f8a0b",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -491,8 +491,8 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "networks_parent_networks_id_fk": {
-          "name": "networks_parent_networks_id_fk",
+        "parentReference": {
+          "name": "parentReference",
           "tableFrom": "networks",
           "tableTo": "networks",
           "columnsFrom": [

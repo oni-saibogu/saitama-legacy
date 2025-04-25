@@ -6,5 +6,6 @@ export type * from "./wallet.model";
 export type * from "./payment.model";
 export type * from "./payment.model";
 export type * from "./customer.model";
+export type * from './network.model';
 export type * from "./paginate.model";
 export type * from "./paymentLink.model";

@@ -1,7 +1,7 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
 import type { Database } from "../../db";
-import { paymentLinks, payments } from "../../db/schema";
+import { networks, paymentLinks } from "../../db/schema";
 import type {
   insertPaymentLinkSchema,
   selectAppSchema,
@@ -14,24 +14,38 @@ export const createPaymentLink = (
   value: Zod.infer<typeof insertPaymentLinkSchema>
 ) => db.insert(paymentLinks).values(value).returning().execute();
 
-export const getPaymentLinkByAppAndId = (
+export const getPaymentLinkByAppAndId = async (
   db: Database,
   app: Zod.infer<typeof selectAppSchema>["id"],
   id: Zod.infer<typeof selectPaymentSchema>["id"]
-) =>
-  db.query.paymentLinks
+) => {
+  const paymentLink = await db.query.paymentLinks
     .findFirst({
       where: and(eq(paymentLinks.id, id), eq(paymentLinks.app, app)),
     })
     .execute();
 
+  if (paymentLink) {
+    return {
+      ...paymentLink,
+      networks: await db.query.networks
+        .findMany({
+          where: inArray(networks.id, paymentLink.networks),
+        })
+        .execute(),
+    };
+  }
+};
+
 export const getPaymentLinksByApp = (
   db: Database,
   app: Zod.infer<typeof selectAppSchema>["id"]
 ) =>
-  db.query.paymentLinks.findMany({
-    where: eq(paymentLinks.app, app),
-  }).execute();
+  db.query.paymentLinks
+    .findMany({
+      where: eq(paymentLinks.app, app),
+    })
+    .execute();
 
 export const updatePaymentLinkByAppAndId = async (
   db: Database,

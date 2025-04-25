@@ -5,9 +5,10 @@ import { TabPanel } from "@headlessui/react";
 import { MdChevronRight } from "react-icons/md";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import { toSVGURL } from "../../utils/svgUtils";
 import { useAPI } from "../../contexts/APIContext";
+import { globalActions } from "../../store/global";
 import withSuspense from "../../composables/withSuspense";
-import { coinsSelector, globalActions } from "../../store/global";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 type SelectCoinTabProps = {
@@ -15,7 +16,7 @@ type SelectCoinTabProps = {
   onNext: React.Dispatch<React.SetStateAction<void>>;
 };
 
-export default withSuspense(function SelectCoinTab({
+export default (function SelectCoinTab({
   as = TabPanel,
   onNext,
 }: SelectCoinTabProps) {
@@ -25,17 +26,16 @@ export default withSuspense(function SelectCoinTab({
   const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
   const [isSubmitting, setSubmitting] = useState(false);
-  const { coinsState, network, customer, paymentLink } = useAppSelector(
+  const { network, customer, paymentLink } = useAppSelector(
     (state) => state.global
   );
-  const coins = coinsSelector.selectAll(coinsState);
 
   const onSelect = useCallback(
     async (coin: Coin) => {
       if (network && customer && paymentLink) {
         const wallet = await api.wallet
           .create({
-            chain: network.data,
+            network: network.id,
           })
           .then(({ data }) => data);
 
@@ -63,7 +63,7 @@ export default withSuspense(function SelectCoinTab({
 
   return (
     <As className="flex-1 flex flex-col space-y-1 divide-y px-4 overflow-y-scroll dark:divide-black">
-      {coins.map((coin, index) => (
+      {network?.coins.map((coin, index) => (
         <button
           key={index}
           disabled={isSubmitting}
@@ -74,7 +74,7 @@ export default withSuspense(function SelectCoinTab({
           }}
         >
           <img
-            src={coin.logo}
+            src={toSVGURL(coin.logo)}
             width={32}
             height={32}
           />

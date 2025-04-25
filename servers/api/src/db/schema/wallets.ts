@@ -9,7 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { apps } from "./apps";
-import { chains } from "../../config";
+import { networks } from "./networks";
 
 export const wallets = pgTable(
   "wallets",
@@ -21,11 +21,13 @@ export const wallets = pgTable(
     metadata: json(),
     address: text().notNull(),
     generated: boolean().default(false).notNull(),
-    chain: text({ enum: chains }).notNull(),
+    network: uuid()
+      .references(() => networks.id)
+      .notNull(),
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().notNull(),
   },
   (column) => ({
-    uniqueWallet: unique().on(column.app, column.address, column.chain),
+    uniqueWallet: unique().on(column.app, column.network, column.address),
   })
 );

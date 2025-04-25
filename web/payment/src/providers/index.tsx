@@ -17,6 +17,7 @@ export default function Provider({
   baseURL,
   payment,
   paymentLink,
+  networks,
 }: React.PropsWithChildren<ProviderProps>) {
   return (
     <QueryClientProvider client={client}>
@@ -27,6 +28,7 @@ export default function Provider({
           baseURL={baseURL}
         >
           <StoreIntialState
+            networks={networks}
             payment={payment}
             paymentLink={paymentLink}
           >

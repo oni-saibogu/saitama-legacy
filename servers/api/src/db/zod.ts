@@ -6,6 +6,7 @@ import {
   apps,
   coins,
   customers,
+  networks,
   paymentLinks,
   payments,
   users,
@@ -72,3 +73,5 @@ export const insertCoinSchema = createInsertSchema(coins).omit({
   createdAt: true,
   updatedAt: true,
 });
+
+export const selectNetworkSchema = createSelectSchema(networks);

@@ -8,6 +8,7 @@ import registerWalletRoutes from "./wallets/wallet.route";
 import registerApiKeyRoutes from "./api-keys/api-key.route";
 import registerPaymentRoutes from "./payments/payment.route";
 import registerWebhookRoutes from "./webhooks/webhook.route";
+import registerNetworkRoutes from "./networks/networks.route";
 import registerCustomerRoutes from "./customers/customers.route";
 import registerPaymentLinkRoutes from "./payment-links/payment-links.route";
 
@@ -17,6 +18,7 @@ export default function registerRoutes(fastify: FastifyInstance) {
   registerUserRoutes(fastify);
   registerCoinRoutes(fastify);
   registerApiKeyRoutes(fastify);
+  registerNetworkRoutes(fastify);
   registerWalletRoutes(fastify);
   registerPaymentRoutes(fastify);
   registerWebhookRoutes(fastify);

@@ -7,12 +7,12 @@ export type Payment<T extends object = object> = {
   id: string;
   amount: string;
   metadata?: T;
-  coin: Coin;
-  wallet: Wallet;
-  customer: Customer;
+  coin: Coin | string;
+  wallet: Wallet | string;
+  customer: Customer | string;
   createdAt: string;
   updatedAt: string;
   signature?: string;
-  paymentLink: PaymentLink;
+  paymentLink: PaymentLink | string;
   status: "pending" | "success" | "failed";
 };

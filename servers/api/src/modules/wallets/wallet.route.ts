@@ -15,6 +15,8 @@ import {
   getWalletsByApp,
   updateWalletByAppAndId,
 } from "./wallet.controller";
+import { getNetworkById } from "../networks/networks.controller";
+import type { chains } from "../../config";
 
 const createWalletRoute = async (
   request: FastifyRequest<{ Body: Zod.infer<typeof insertWalletSchema> }>
@@ -33,20 +35,26 @@ const createWalletRoute = async (
         });
       else {
         const index = crypto.randomInt(1, 10);
-        const address = await generateAddressFromIndex(
-          getEnv("MNEMONIC")!,
-          index,
-          body.chain
-        );
-        [wallet] = await createWallet(db, {
-          ...body,
-          address,
-          generated: true,
-          app: request.user!.app!.id,
-          metadata: { index },
-        });
+        const network = await getNetworkById(db, body.network);
+        if (network) {
+          const address = await generateAddressFromIndex(
+            getEnv("MNEMONIC")!,
+            index,
+            network.name as unknown as (typeof chains)[number]
+          );
+          [wallet] = await createWallet(db, {
+            ...body,
+            address,
+            generated: true,
+            app: request.user!.app!.id,
+            metadata: { index },
+          });
+        } else
+          throw new RequestError(
+            404,
+            format("network with id=% not found", body.network)
+          );
       }
-
       return wallet;
     });
 

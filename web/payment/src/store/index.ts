@@ -1,11 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 
 import { globalReducer } from "./global";
+import { configsReducer } from "./configs";
 
 export const makeStore = () => {
   return configureStore({
     reducer: {
       global: globalReducer,
+      configs: configsReducer,
     },
   });
 };

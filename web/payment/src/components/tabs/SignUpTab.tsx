@@ -6,7 +6,7 @@ import { MdOutlineEmail } from "react-icons/md";
 
 import Loading from "../Loading";
 import { globalActions } from "../../store/global";
-import { useAppDispatch } from "../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useAPI } from "../../contexts/APIContext";
 
 type SignUpTabProps = {
@@ -19,11 +19,12 @@ export default function SignUpTab({ as = TabPanel, onNext }: SignUpTabProps) {
   const { api } = useAPI();
   const dispatch = useAppDispatch();
   const email = useSearchParam("email");
+  const { customer } = useAppSelector((state) => state.global);
 
   return (
     <As className="flex-1 flex flex-col p-4">
       <Formik
-        initialValues={{ email: email ?? "" }}
+        initialValues={{ email: email ?? customer?.email ?? "" }}
         validationSchema={object({
           email: string().email().required(),
         })}

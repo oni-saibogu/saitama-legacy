@@ -15,9 +15,7 @@ export const paymentLinks = pgTable("paymentLinks", {
   app: uuid()
     .references(() => apps.id, { onDelete: "cascade" })
     .notNull(),
-  chains: text({ enum: ["solana", "ethereum", "tron"] })
-    .array()
-    .notNull(),
+  networks: uuid().array().notNull(),
   createdAt: timestamp().defaultNow().notNull(),
   updatedAt: timestamp().defaultNow().notNull(),
 });

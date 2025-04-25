@@ -28,10 +28,10 @@ export abstract class Crud<T extends object> extends ApiImpl {
     return this.xior.get<T>(this.buildPath(id));
   };
 
-  readonly list = <TQuery = Partial<T>>(query?: TQuery) => {
-    return this.xior.get<LimitOffsetPagination<T>>(
-      this.buildQueryPath(this.path, query!)
-    );
+  readonly list = <TQuery = Partial<T>>(
+    query?: TQuery
+  ) => {
+    return this.xior.get<T[]>(this.buildQueryPath(this.path, query!));
   };
 
   readonly update = <TData = Partial<T>>(id: string | number, data: TData) => {

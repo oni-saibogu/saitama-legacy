@@ -1,14 +1,18 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
-import type { Coin, Customer, Payment, PaymentLink } from "@saitamafun/sdk";
-
-import type { Network } from "../configs";
+import type {
+  Coin,
+  Customer,
+  Network,
+  Payment,
+  PaymentLink,
+} from "@saitamafun/sdk";
 
 export type GlobalState = {
-  coin: Coin;
+  coin: Coin | null;
+  network: Network | null;
   payment: Payment | null;
   customer: Customer | null;
   paymentLink: PaymentLink | null;
-  network: Omit<Network, "icon" | "chains"> | null;
   coinsState: ReturnType<typeof coinsEntityAdapter.getInitialState>;
 };
 

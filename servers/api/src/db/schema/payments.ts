@@ -11,7 +11,7 @@ const generatePaymentId = () => "PAY-" + crypto.randomBytes(8).toString("hex");
 export const payments = pgTable("payments", {
   id: text().$defaultFn(generatePaymentId).primaryKey(),
   amount: text().notNull(),
-  coin: text()
+  coin: uuid()
     .references(() => coins.id, { onDelete: "cascade" })
     .notNull(),
   signature: text(),
