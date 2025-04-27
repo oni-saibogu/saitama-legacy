@@ -1,25 +1,40 @@
+import { useEffect, useMemo } from "react";
 import { object, string } from "yup";
 import { useSearchParam } from "react-use";
 import { TabPanel } from "@headlessui/react";
 import { Formik, Form, Field } from "formik";
 import { MdOutlineEmail } from "react-icons/md";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 import Loading from "../Loading";
 import { globalActions } from "../../store/global";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useAPI } from "../../contexts/APIContext";
+import withSuspense from "../../composables/withSuspense";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 type SignUpTabProps = {
   as?: React.ElementType;
   onNext: React.Dispatch<React.SetStateAction<void>>;
 };
 
-export default function SignUpTab({ as = TabPanel, onNext }: SignUpTabProps) {
+export default withSuspense(function SignUpTab({
+  as = TabPanel,
+  onNext,
+}: SignUpTabProps) {
   const As = as;
   const { api } = useAPI();
+  const router = useRouter();
+  const pathname = usePathname();
   const dispatch = useAppDispatch();
+  const searchParams = useSearchParams();
   const email = useSearchParam("email");
   const { customer } = useAppSelector((state) => state.global);
+  const hasPayment = useMemo(() => searchParams.has("payment"), [searchParams]);
+
+  useEffect(() => {
+    dispatch(globalActions.setPayment(null));
+    router.push(pathname);
+  }, [hasPayment]);
 
   return (
     <As className="flex-1 flex flex-col p-4">
@@ -76,4 +91,4 @@ export default function SignUpTab({ as = TabPanel, onNext }: SignUpTabProps) {
       </Formik>
     </As>
   );
-}
+});

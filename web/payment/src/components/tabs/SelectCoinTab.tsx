@@ -16,7 +16,7 @@ type SelectCoinTabProps = {
   onNext: React.Dispatch<React.SetStateAction<void>>;
 };
 
-export default (function SelectCoinTab({
+export default withSuspense(function SelectCoinTab({
   as = TabPanel,
   onNext,
 }: SelectCoinTabProps) {
@@ -26,7 +26,7 @@ export default (function SelectCoinTab({
   const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
   const [isSubmitting, setSubmitting] = useState(false);
-  const { network, customer, paymentLink } = useAppSelector(
+  const { network, customer, paymentLink, payment } = useAppSelector(
     (state) => state.global
   );
 
@@ -38,6 +38,11 @@ export default (function SelectCoinTab({
             network: network.id,
           })
           .then(({ data }) => data);
+
+        if (payment)
+          return api.payment.update(payment.id, {
+            coin: coin.id,
+          });
 
         return api.payment
           .create({

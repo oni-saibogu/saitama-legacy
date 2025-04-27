@@ -1,0 +1,55 @@
+import { redis } from "bun";
+import moment from "moment";
+
+import { format } from "../utils";
+import type { chains } from "../../config";
+import { generateAddressFromIndex } from "./generate";
+
+export const getWalletIndex = async (
+  chain: (typeof chains)[number],
+  index = 1,
+  {
+    maxIndex = 10,
+    maxAge = moment.duration(15, "minutes").asSeconds(),
+  }: {
+    index?: number;
+    maxIndex?: number;
+    maxAge?: number;
+  }
+): Promise<number> => {
+  console.log(maxAge, maxIndex);
+  if (index > maxIndex)
+    throw new Error("no free wallet found after multiple attempts");
+
+  const key = format("%-%", chain, index);
+  const walletInfo = await redis.get(key);
+  console.log(walletInfo);
+
+  if (!walletInfo) {
+    const epoch = moment();
+    const locked = await redis.setnx(
+      key,
+      JSON.stringify({
+        epoch: epoch.toDate(),
+        maxUseTime: maxAge,
+      })
+    );
+
+    if (locked) {
+      await redis.expire(key, maxAge);
+      return index;
+    }
+  }
+
+  return getWalletIndex(chain, index + 1, { maxIndex, maxAge });
+};
+
+export const getWallet = async (
+  mnemonic: string,
+  chain: (typeof chains)[number],
+  maxIndex?: number,
+  maxAge?: number
+) => {
+  const index = await getWalletIndex(chain, 1, { maxIndex, maxAge });
+  return generateAddressFromIndex(mnemonic, index, chain);
+};

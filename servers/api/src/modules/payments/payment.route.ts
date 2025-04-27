@@ -54,8 +54,7 @@ const updatePaymentRoute = (
       .parseAsync(request.params)
       .then(({ id }) =>
         insertPaymentSchema
-          .partial()
-          .pick({ signature: true })
+          .pick({ amount: true, coin: true, wallet: true })
           .parseAsync(request.body)
           .then(async (body) => {
             const payments = await updatePaymentByAppAndId(
@@ -76,7 +75,6 @@ const updatePaymentRoute = (
           })
       )
   );
-  
 
 export default function registerPaymentkoutes(fastify: FastifyInstance) {
   fastify
