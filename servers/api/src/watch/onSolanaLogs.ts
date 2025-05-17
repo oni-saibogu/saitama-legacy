@@ -1,30 +1,28 @@
-import {} from "ethers";
-import {} from "tronweb";
 import { eq, or } from "drizzle-orm";
 import { web3 } from "@coral-xyz/anchor";
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
+import { format } from "../core";
+import { db, solana } from "../instances";
 import { coins, wallets } from "../db/schema";
 import type { selectWalletSchema } from "../db/zod";
-import { db, solanaConnection } from "../instances";
 import type {
   ParsedSplTokenTransferChecked,
   ParsedTokenTransfer,
 } from "./models";
-import { format } from "../core";
 
-export const tokenProgramIds = new Set([
+const tokenProgramIds = new Set([
   TOKEN_PROGRAM_ID.toBase58(),
   TOKEN_2022_PROGRAM_ID.toBase58(),
 ]);
 
-export const programIds = [
+const programIds = [
   TOKEN_PROGRAM_ID,
   TOKEN_2022_PROGRAM_ID,
   web3.SystemProgram.programId,
 ];
 
-export const onSolanaLogs = async (
+const onSolanaLogs = async (
   ...[{ signature }]: Parameters<web3.LogsCallback>
 ) => {
   console.log(
@@ -34,7 +32,7 @@ export const onSolanaLogs = async (
     )
   );
 
-  const parsedTransactionWithMeta = await solanaConnection.getParsedTransaction(
+  const parsedTransactionWithMeta = await solana.getParsedTransaction(
     signature,
     {
       commitment: "confirmed",
@@ -96,7 +94,7 @@ export const onSolanaLogs = async (
       const [, , associatedTokenAccount] = accountKeys.map(
         (accountKey) => accountKey.pubkey
       );
-      const accountInfo = await solanaConnection.getParsedAccountInfo(
+      const accountInfo = await solana.getParsedAccountInfo(
         associatedTokenAccount
       );
 
@@ -125,20 +123,15 @@ export const onSolanaLogs = async (
 };
 
 const subscriptions = programIds.map((programId) =>
-  solanaConnection.onLogs(programId, onSolanaLogs)
+  solana.onLogs(programId, onSolanaLogs)
 );
 
-process.on("SIGINT", () =>
+const close = () =>
   Promise.all(
     subscriptions.map((subscription) =>
-      solanaConnection.removeOnLogsListener(subscription)
+      solana.removeOnLogsListener(subscription)
     )
-  )
-);
-process.on("SIGTERM", () =>
-  Promise.all(
-    subscriptions.map((subscription) =>
-      solanaConnection.removeOnLogsListener(subscription)
-    )
-  )
-);
+  );
+
+process.on("SIGINT", close);
+process.on("SIGTERM", close);

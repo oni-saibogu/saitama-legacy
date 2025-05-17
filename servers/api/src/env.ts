@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-type Env = "MNEMONIC"|"HOST"|"PORT"|"SOLANA_RPC_URL"|"DATABASE_URL"|"SECRET_KEY"|"SERVICE_ACCOUNT";
+type Env = "MNEMONIC"|"HOST"|"PORT"|"TRON_RPC_URL"|"SOLANA_RPC_URL"|"ETHEREUM_RPC_URL"|"DATABASE_URL"|"SECRET_KEY"|"SERVICE_ACCOUNT";
 
 export const getEnv = <T extends object | number | string | null = string>(
   name: Env,

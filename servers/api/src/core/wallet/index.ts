@@ -17,13 +17,11 @@ export const getWalletIndex = async (
     maxAge?: number;
   }
 ): Promise<number> => {
-  console.log(maxAge, maxIndex);
   if (index > maxIndex)
     throw new Error("no free wallet found after multiple attempts");
 
   const key = format("%-%", chain, index);
   const walletInfo = await redis.get(key);
-  console.log(walletInfo);
 
   if (!walletInfo) {
     const epoch = moment();
