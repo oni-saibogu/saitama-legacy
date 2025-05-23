@@ -1,24 +1,24 @@
 services:
   - type: web
-    name: kamikaze
+    name: saitama
     runtime: docker
     plan: standard
     autoDeploy: true
-    dockerfilePath: servers/kamikaze/Dockerfile
+    dockerfilePath: servers/api/Dockerfile
     buildFilter:
       paths:
-        - servers/kamikaze/**/*.ts
-        - servers/kamikaze/Dockerfile
+        - servers/api/**/*.ts
+        - servers/api/Dockerfile
         - packages/tsconfig/*.json
     envVars:
-      - fromGroup: servers/kamikaze
+      - fromGroup: servers/api
       - key: DATABASE_URL
         fromDatabase:
-          name: kamikazeDB
+          name: saitamaDB
           property: connectionString
     domains:
       - "v1.api.gateway.saitama.fun"
 databases:
-  - name: kamikazeDB
+  - name: saitamaDB
     user: admin
     plan: starter
