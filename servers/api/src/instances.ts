@@ -14,5 +14,5 @@ export const solana = new web3.Connection(getEnv<string>("SOLANA_RPC_URL")!);
 
 export const viem = createPublicClient({
   chain: mainnet,
-  transport: http(),
+  transport: http(getEnv<string>("ETHEREUM_RPC_URL")!),
 });

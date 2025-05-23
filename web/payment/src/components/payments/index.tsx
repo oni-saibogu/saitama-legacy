@@ -7,10 +7,9 @@ import { TabGroup, TabList, Tab, TabPanel, TabPanels } from "@headlessui/react";
 import Modal from "../Modal";
 import SignUpTab from "../tabs/SignUpTab";
 import SelectCoinTab from "../tabs/SelectCoinTab";
-import { useAPI } from "../../contexts/APIContext";
+import { useAppSelector } from "../../store/hooks";
 import SelectNetworkTab from "../tabs/SelectNetworkTab";
 import WalletTransferTab from "../tabs/WalletTransferTab";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 const tabs = [
   { name: "Sign up", component: SignUpTab },

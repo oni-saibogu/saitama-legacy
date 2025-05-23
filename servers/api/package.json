@@ -7,13 +7,15 @@
   "scripts": {
     "codegen": "bun scripts/codegen.ts",
     "start": "node dist/index.cjs",
+    "anvil:start": "anvil",
     "amman:start": "bun x amman start",
     "gen:id-token": "firebase-generate-id-token",
-    "dev:watch": "bun run codegen && nodemon --exec bun run src/watch/index.ts",
     "dev": "bun run codegen && nodemon --exec bun run src/index.ts",
     "migrate": "npx drizzle-kit generate && npx drizzle-kit migrate",
     "create-key": "npx --yes @fastify/secure-session > secret-key",
-    "build": "tsup src/index.ts --format cjs --minify --treeshake"
+    "build": "tsup src/index.ts --format cjs --minify --treeshake",
+    "dev:watch": "bun run codegen && nodemon --exec bun run src/watch/index.ts",
+    "devnet:start": "concurrently \"npm run anvil:start\" \"npm run amman:start\""
   },
   "devDependencies": {
     "@metaplex-foundation/amman": "^0.12.1",
@@ -21,8 +23,10 @@
     "@types/bcrypt": "^5.0.2",
     "@types/bun": "latest",
     "@types/passport-jwt": "^4.0.1",
+    "concurrently": "^9.1.2",
     "drizzle-kit": "^0.31.0",
     "firebase-id-token-generator": "^1.0.1",
+    "hardhat": "^2.24.0",
     "nodemon": "^3.1.10"
   },
   "peerDependencies": {

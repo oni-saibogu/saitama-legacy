@@ -1,5 +1,12 @@
 import crypto from "crypto";
-import { json, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  bigint,
+  json,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 import { coins } from "./coins";
 import { wallets } from "./wallets";
@@ -10,7 +17,7 @@ const generatePaymentId = () => "PAY-" + crypto.randomBytes(8).toString("hex");
 
 export const payments = pgTable("payments", {
   id: text().$defaultFn(generatePaymentId).primaryKey(),
-  amount: text().notNull(),
+  amount: bigint({ mode: "bigint" }).notNull(),
   coin: uuid()
     .references(() => coins.id, { onDelete: "cascade" })
     .notNull(),
@@ -27,7 +34,7 @@ export const payments = pgTable("payments", {
   status: text({ enum: ["pending", "success", "failed"] })
     .default("pending")
     .notNull(),
-  metadata: json().default(null),
+  metadata: json().$type<Record<string, string> | null>().default(null),
   createdAt: timestamp().defaultNow().notNull(),
   updatedAt: timestamp().defaultNow().notNull(),
 });

@@ -1,11 +1,11 @@
-import { eq, or } from "drizzle-orm";
+import { and, desc, eq, or } from "drizzle-orm";
 import { web3 } from "@coral-xyz/anchor";
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 import { format } from "../core";
 import { db, solana } from "../instances";
-import { coins, wallets } from "../db/schema";
-import type { selectWalletSchema } from "../db/zod";
+import { apps, coins, paymentLinks, payments, wallets } from "../db/schema";
+import type { insertPaymentSchema, selectWalletSchema } from "../db/zod";
 import type {
   ParsedSplTokenTransferChecked,
   ParsedTokenTransfer,
@@ -75,19 +75,113 @@ const onSolanaLogs = async (
         format("[wallet.process] processing payment for wallet=%", wallet.id)
       );
 
-      instructions.map((instruction) => {
-        if (instruction.programId.equals(web3.SystemProgram.programId)) {
-          if ("parsed" in instruction) {
-            const parsed = instruction.parsed as ParsedTokenTransfer;
-            console.log(parsed);
+      return Promise.all(
+        instructions.map(async (instruction) => {
+          let payment;
+          const data: Partial<Zod.infer<typeof insertPaymentSchema>> = {};
+
+          if (instruction.programId.equals(web3.SystemProgram.programId)) {
+            if ("parsed" in instruction) {
+              const parsed = instruction.parsed as ParsedTokenTransfer;
+              payment = await db.query.payments
+                .findFirst({
+                  where: eq(payments.wallet, wallet.id),
+                  orderBy: desc(payments.createdAt),
+                  columns: {
+                    id: true,
+                    amount: true,
+                    metadata: true,
+                  },
+                })
+                .execute();
+              if (parsed && payment) {
+                console.log("[transaction.validating] payment=", payment.id);
+                if (BigInt(parsed.info.lamport) >= payment.amount)
+                  data.status = "success";
+                else {
+                  const error = format(
+                    "Expected % amount but got %",
+                    payment.amount.toString(),
+                    parsed.info.lamport
+                  );
+
+                  data.status = "failed";
+                  data.metadata = {
+                    ...payment.metadata,
+                    error,
+                  };
+
+                  console.error(
+                    "[transaction.amoount.invalid]",
+                    format("reason=% signature=%", error, signature)
+                  );
+                }
+              }
+            }
+          } else if (tokenProgramIds.has(instruction.programId.toBase58())) {
+            if ("parsed" in instruction && coin) {
+              const parsed =
+                instruction.parsed as ParsedSplTokenTransferChecked;
+              [payment] = await db
+                .select({
+                  id: payments.id,
+                  amount: payments.amount,
+                  metadata: payments.metadata,
+                })
+                .from(payments)
+                .innerJoin(
+                  paymentLinks,
+                  eq(paymentLinks.id, payments.paymentLink)
+                )
+                .innerJoin(apps, eq(apps.id, paymentLinks.app))
+                .orderBy(desc(payments.createdAt))
+                .where(
+                  and(
+                    eq(payments.wallet, wallet.id),
+                    eq(payments.coin, coin.id)
+                  )
+                )
+                .execute();
+              if (parsed && payment) {
+                console.log("[transaction.validating] payment=", payment.id);
+
+                if (BigInt(parsed.info.tokenAmount.amount) >= payment.amount)
+                  data.status = "success";
+                else {
+                  const error = format(
+                    "Expected % amount but got %",
+                    payment.amount.toString(),
+                    parsed.info.tokenAmount.amount.toString()
+                  );
+                  data.status = "failed";
+
+                  data.metadata = {
+                    ...payment.metadata,
+                    error,
+                  };
+                  console.error(
+                    "[transaction.amounta.invalid]",
+                    format("reason=% signature=%", error, signature)
+                  );
+                }
+              }
+            }
           }
-        } else if (tokenProgramIds.has(instruction.programId.toBase58())) {
-          if ("parsed" in instruction) {
-            const parsed = instruction.parsed as ParsedSplTokenTransferChecked;
-            console.log(parsed.info.tokenAmount.amount);
-          }
-        }
-      });
+
+          if (payment)
+            return db
+              .update(payments)
+              .set(data)
+              .where(eq(payments.id, payment.id))
+              .returning()
+              .execute();
+
+          console.error(
+            "[transaction.payment.notFound] reason=payment can't be found. signature=%",
+            signature
+          );
+        })
+      );
     };
 
     if (!wallet) {
@@ -113,9 +207,9 @@ const onSolanaLogs = async (
 
     if (wallet) return processInstruction(wallet);
     else
-      console.log(
+      console.error(
         format(
-          "[logs.wallet.notfound] no wallet found for signature=%",
+          "[transaction.wallet.notFound] no wallet found for signature=%",
           signature
         )
       );

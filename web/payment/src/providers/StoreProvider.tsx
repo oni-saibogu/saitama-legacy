@@ -39,6 +39,8 @@ export function StoreIntialState({
         getObjectKeyOrThrow(getObjectKeyOrThrow(payment, "coin"), "network").id
     );
 
+    console.log(payment)
+
     dispatch(globalActions.setPayment(payment));
     dispatch(globalActions.setNetwork(network));
     dispatch(globalActions.setCustomer(customer));

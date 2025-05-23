@@ -6,7 +6,7 @@ export default defineConfig({
     filesystem: ["**/*.{html,js,ts,jsx,tsx,vue,svelte,astro}"],
   },
   presets: [
-    presetWind3({ dark: "class" }),
+    presetWind3({ dark: "media" }),
     presetWebFonts({
       provider: "google",
       fonts: {

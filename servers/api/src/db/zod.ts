@@ -43,7 +43,7 @@ export const insertWebhookSchema = createInsertSchema(webhooks, {
 export const selectWebhookSchema = createSelectSchema(webhooks);
 
 export const selectPaymentSchema = createSelectSchema(payments);
-export const insertPaymentSchema = createInsertSchema(payments).omit({
+export const insertPaymentSchema = createInsertSchema(payments, {metadata: object({})}).omit({
   id: true,
   createdAt: true,
   updatedAt: true,

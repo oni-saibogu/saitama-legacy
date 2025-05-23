@@ -28,7 +28,7 @@ export default function WalletTransferTab({
     [payment]
   );
 
-  console.log(payment, network, coin, wallet);
+  console.log("me",payment, network, coin, wallet);
 
   return (
     payment && (

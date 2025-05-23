@@ -68,7 +68,7 @@ const NetworkButton = ({ network, onSelect }: NetworkButtonProps) => {
     >
       <Button
         disabled={isLoading}
-        className="flex text-start items-center space-x-2 !bg-stone-100 p-2 rounded-md dark:bg-dark-200"
+        className="flex text-start items-center space-x-2 bg-stone-100 p-2 rounded-md dark:bg-dark-200"
         onClick={() => {
           if (network.subchains) return;
           setLoading(true);
