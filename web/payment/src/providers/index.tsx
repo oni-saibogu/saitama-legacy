@@ -28,8 +28,8 @@ export default function Provider({
           baseURL={baseURL}
         >
           <StoreIntialState
-            networks={networks}
             payment={payment}
+            networks={networks}
             paymentLink={paymentLink}
           >
             {children}

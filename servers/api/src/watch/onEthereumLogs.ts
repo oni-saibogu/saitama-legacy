@@ -1,3 +1,4 @@
+import type { z } from "zod";
 import { desc, eq, and, getTableColumns } from "drizzle-orm";
 
 import { format } from "../core";
@@ -67,7 +68,7 @@ const unsubscribeERC20 = viem.watchEvent({
             if (payment) {
               console.log("[transaction.validating] payment=", payment.id);
 
-              const data: Partial<Zod.infer<typeof insertPaymentSchema>> = {};
+              const data: Partial<z.infer<typeof insertPaymentSchema>> = {};
 
               if (value >= payment.amount) data.status = "success";
               else {
@@ -143,7 +144,7 @@ const unsubscribeNative = viem.watchBlocks({
 
             if (payment) {
               console.log("[transaction.validating] payment=", payment.id);
-              const data: Partial<Zod.infer<typeof insertPaymentSchema>> = {};
+              const data: Partial<z.infer<typeof insertPaymentSchema>> = {};
 
               if (value >= payment.amount) data.status = "success";
               else {

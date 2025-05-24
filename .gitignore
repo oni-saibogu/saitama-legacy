@@ -10,3 +10,4 @@ apps/examples
 serviceAccount.json
 .next
 .keep
+secret-key

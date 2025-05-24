@@ -15,6 +15,13 @@
       "when": 1745485272447,
       "tag": "0001_same_mockingbird",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1748037608110,
+      "tag": "0002_thin_valkyrie",
+      "breakpoints": true
     }
   ]
 }

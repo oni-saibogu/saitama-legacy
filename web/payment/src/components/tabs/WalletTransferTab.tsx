@@ -1,5 +1,6 @@
 import moment from "moment";
 import { useMemo } from "react";
+import Decimal from "decimal.js";
 import { BN } from "@coral-xyz/anchor";
 import { TabPanel } from "@headlessui/react";
 import { MdContentCopy } from "react-icons/md";
@@ -28,7 +29,7 @@ export default function WalletTransferTab({
     [payment]
   );
 
-  console.log("me",payment, network, coin, wallet);
+  console.log(payment)
 
   return (
     payment && (
@@ -38,7 +39,9 @@ export default function WalletTransferTab({
             <div>
               <p>
                 Send&nbsp;
-                <b className="text-violet-700 dark:text-violet">{coin.ticker}</b>
+                <b className="text-violet-700 dark:text-violet">
+                  {coin.ticker}
+                </b>
                 &nbsp;via&nbsp;
                 <b className="text-violet-700 capitalize dark:text-violet">
                   {network.name}
@@ -67,12 +70,9 @@ export default function WalletTransferTab({
                 <p className="font-medium">Amount</p>
                 <div className="flex items-center">
                   <p className="flex-1 text-xs text-black/50 dark:text-stone-300 md:text-sm">
-                    {/* {unsafeBnToNumber(
-                      safeBN(payment.amount).div(
-                        new BN(10).pow(new BN(coin.decimals))
-                      ),
-                      coin.decimals
-                    )} */}
+                    {new Decimal(payment.amount)
+                      .div(Math.pow(10, coin.decimals))
+                      .toNumber()}
                     &nbsp;
                     {coin.ticker}
                   </p>

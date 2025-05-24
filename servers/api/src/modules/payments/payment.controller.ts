@@ -1,3 +1,4 @@
+import type { z } from "zod";
 import { and, eq, inArray, SQL } from "drizzle-orm";
 
 import type { Database } from "../../db";
@@ -8,15 +9,14 @@ import type {
   selectPaymentSchema,
 } from "../../db/zod";
 
-
 export const createPayment = (
   db: Database,
-  value: Zod.infer<typeof insertPaymentSchema>
+  value: z.infer<typeof insertPaymentSchema>
 ) => db.insert(payments).values(value).returning().execute();
 
 export const getPaymentsByAppWhere = (
   db: Database,
-  app: Zod.infer<typeof selectAppSchema>["id"],
+  app: z.infer<typeof selectAppSchema>["id"],
   where?: SQL<unknown>
 ) => {
   return db.query.payments.findMany({
@@ -24,6 +24,7 @@ export const getPaymentsByAppWhere = (
       paymentLink: true,
       wallet: {
         columns: {
+          id: true,
           address: true,
         },
       },
@@ -31,18 +32,22 @@ export const getPaymentsByAppWhere = (
         with: {
           network: {
             columns: {
+              id: true,
               name: true,
             },
           },
         },
         columns: {
+          id: true,
           name: true,
           ticker: true,
+          decimals: true,
         },
       },
     },
     columns: {
       id: true,
+      amount: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -61,61 +66,67 @@ export const getPaymentsByAppWhere = (
 
 export const getPaymentByAppAndId = (
   db: Database,
-  app: Zod.infer<typeof selectAppSchema>["id"],
-  id: Zod.infer<typeof selectPaymentSchema>["id"]
+  app: z.infer<typeof selectAppSchema>["id"],
+  id: z.infer<typeof selectPaymentSchema>["id"]
 ) => {
-  return db.query.payments.findFirst({
-    with: {
-      paymentLink: true,
-      wallet: {
-        columns: {
-          address: true,
-        },
-      },
-      coin: {
-        with: {
-          network: {
-            columns: {
-              id: true,
-              name: true,
-            },
+  return db.query.payments
+    .findFirst({
+      with: {
+        paymentLink: true,
+        wallet: {
+          columns: {
+            id: true,
+            address: true,
           },
         },
-        columns: {
-          name: true,
-          ticker: true,
+        coin: {
+          with: {
+            network: {
+              columns: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+          columns: {
+            id: true,
+            name: true,
+            ticker: true,
+            decimals: true,
+          },
+        },
+        customer: {
+          columns: {
+            id: true,
+            email: true,
+          },
         },
       },
-      customer: {
-        columns: {
-          id: true,
-          email: true,
-        },
+      columns: {
+        id: true,
+        amount: true,
+        createdAt: true,
+        updatedAt: true,
       },
-    },
-    columns: {
-      id: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-    where: and(
-      eq(payments.id, id),
-      inArray(
-        payments.paymentLink,
-        db
-          .select({ id: paymentLinks.id })
-          .from(paymentLinks)
-          .where(eq(paymentLinks.app, app))
-      )
-    ),
-  });
+      where: and(
+        eq(payments.id, id),
+        inArray(
+          payments.paymentLink,
+          db
+            .select({ id: paymentLinks.id })
+            .from(paymentLinks)
+            .where(eq(paymentLinks.app, app))
+        )
+      ),
+    })
+    .execute();
 };
 
 export const updatePaymentByAppAndId = async (
   db: Database,
-  app: Zod.infer<typeof selectAppSchema>["id"],
-  id: Zod.infer<typeof selectPaymentSchema>["id"],
-  value: Partial<Zod.infer<typeof insertPaymentSchema>>
+  app: z.infer<typeof selectAppSchema>["id"],
+  id: z.infer<typeof selectPaymentSchema>["id"],
+  value: Partial<z.infer<typeof insertPaymentSchema>>
 ) => {
   const [payment] = await db
     .select({ id: payments.id })
@@ -140,8 +151,8 @@ export const updatePaymentByAppAndId = async (
 
 export const deletePaymentByPaymentLinkAndId = async (
   db: Database,
-  app: Zod.infer<typeof selectAppSchema>["id"],
-  id: Zod.infer<typeof selectPaymentSchema>["id"]
+  app: z.infer<typeof selectAppSchema>["id"],
+  id: z.infer<typeof selectPaymentSchema>["id"]
 ) => {
   const [payment] = await db
     .select({ id: payments.id })

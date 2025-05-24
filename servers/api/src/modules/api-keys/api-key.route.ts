@@ -1,4 +1,6 @@
+import { array, type z } from "zod";
 import passport from "@fastify/passport";
+import zodToJsonSchema from "zod-to-json-schema";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
 import { format } from "../../core";
@@ -13,7 +15,7 @@ import {
 } from "./api-key.controller";
 
 const createApiKeyRoute = (
-  request: FastifyRequest<{ Body?: Zod.infer<typeof insertApiKeySchema> }>
+  request: FastifyRequest<{ Body?: z.infer<typeof insertApiKeySchema> }>
 ) =>
   withUserGuard((user) =>
     insertApiKeySchema
@@ -27,7 +29,7 @@ const getApiKeysRoute = (request: FastifyRequest) =>
 
 const deleteApiKeyRoute = (
   request: FastifyRequest<{
-    Params: Pick<Zod.infer<typeof selectApiKeySchema>, "id">;
+    Params: Pick<z.infer<typeof selectApiKeySchema>, "id">;
   }>
 ) =>
   withUserGuard((user) =>
@@ -46,20 +48,36 @@ export default function registerApiKeyRoutes(fastify: FastifyInstance) {
   fastify
     .route({
       method: "POST",
-      url: "/api-keys/",
+      url: "/",
       handler: RequestError.handler(createApiKeyRoute),
       preHandler: passport.authenticate("jwt"),
+      schema: {
+        response: {
+          200: zodToJsonSchema(selectApiKeySchema),
+        },
+      },
     })
     .route({
       method: "GET",
-      url: "/api-keys/",
+      url: "/",
       handler: RequestError.handler(getApiKeysRoute),
       preHandler: passport.authenticate("jwt"),
+      schema: {
+        response: {
+          200: zodToJsonSchema(array(selectApiKeySchema)),
+        },
+      },
     })
     .route({
       method: "DELETE",
-      url: "/api-keys/:id//",
+      url: "/:id//",
       handler: RequestError.handler(deleteApiKeyRoute),
       preHandler: passport.authenticate("jwt"),
+      schema: {
+        params: zodToJsonSchema(selectApiKeySchema.pick({ id: true })),
+        response: {
+          200: zodToJsonSchema(selectApiKeySchema),
+        },
+      },
     });
 }

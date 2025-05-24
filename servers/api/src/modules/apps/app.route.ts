@@ -1,4 +1,6 @@
+import { array, type z } from "zod";
 import passport from "@fastify/passport";
+import zodToJsonSchema from "zod-to-json-schema";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
 import { format } from "../../core";
@@ -15,7 +17,7 @@ import {
 } from "./app.controller";
 
 const createAppRoute = (
-  request: FastifyRequest<{ Body: Zod.infer<typeof insertAppSchema> }>
+  request: FastifyRequest<{ Body: z.infer<typeof insertAppSchema> }>
 ) =>
   withUserGuard(
     (user) =>
@@ -28,12 +30,12 @@ const createAppRoute = (
         }),
     true
   );
-  
+
 const getAppsRoute = withUserGuard((user) => getAppsByUser(db, user.id), true);
 
 const getAppRoute = (
   request: FastifyRequest<{
-    Params: Pick<Zod.infer<typeof selectAppSchema>, "id">;
+    Params: Pick<z.infer<typeof selectAppSchema>, "id">;
   }>
 ) =>
   withUserGuard(
@@ -52,8 +54,8 @@ const getAppRoute = (
 
 const updateAppRoute = (
   request: FastifyRequest<{
-    Params: Pick<Zod.infer<typeof selectAppSchema>, "id">;
-    Body: Partial<Zod.infer<typeof insertAppSchema>>;
+    Params: Pick<z.infer<typeof selectAppSchema>, "id">;
+    Body: Partial<z.infer<typeof insertAppSchema>>;
   }>
 ) =>
   withUserGuard(
@@ -66,7 +68,7 @@ const updateAppRoute = (
             .partial()
             .parseAsync(request.body)
             .then(async (body) => {
-              const app = await updateAppByUserAndId(db, user.id, id, body);
+              const [app] = await updateAppByUserAndId(db, user.id, id, body);
               if (app) return app;
 
               throw new RequestError(
@@ -80,7 +82,7 @@ const updateAppRoute = (
 
 const deleteAppRoute = (
   request: FastifyRequest<{
-    Params: Pick<Zod.infer<typeof selectAppSchema>, "id">;
+    Params: Pick<z.infer<typeof selectAppSchema>, "id">;
   }>
 ) =>
   withUserGuard(
@@ -101,32 +103,62 @@ export default function registerAppRoutes(fastify: FastifyInstance) {
   fastify
     .route({
       method: "POST",
-      url: "/apps/",
+      url: "/",
       handler: RequestError.handler(createAppRoute),
       preHandler: passport.authenticate("jwt"),
+      schema: {
+        body: zodToJsonSchema(insertAppSchema.omit({ user: true })),
+        response: {
+          201: zodToJsonSchema(insertAppSchema),
+        },
+      },
     })
     .route({
       method: "GET",
-      url: "/apps/",
+      url: "/",
       handler: RequestError.handler(getAppsRoute),
       preHandler: passport.authenticate("jwt"),
+      schema: {
+        response: {
+          200: zodToJsonSchema(array(selectAppSchema.omit({ user: true }))),
+        },
+      },
     })
     .route({
       method: "GET",
-      url: "/apps/:id/",
+      url: "/:id/",
       handler: RequestError.handler(getAppRoute),
       preHandler: passport.authenticate("jwt"),
+      schema: {
+        params: zodToJsonSchema(selectAppSchema.pick({ id: true })),
+        response: {
+          200: zodToJsonSchema(selectAppSchema.omit({ user: true })),
+        },
+      },
     })
     .route({
       method: "PATCH",
-      url: "/apps/:id/",
+      url: "/:id/",
       handler: RequestError.handler(updateAppRoute),
       preHandler: passport.authenticate("jwt"),
+      schema: {
+        params: zodToJsonSchema(selectAppSchema.pick({ id: true })),
+        body: zodToJsonSchema(insertAppSchema.omit({ user: true }).partial()),
+        response: {
+          201: zodToJsonSchema(selectAppSchema),
+        },
+      },
     })
     .route({
       method: "DELETE",
-      url: "/apps/:id/",
+      url: "/:id/",
       handler: RequestError.handler(deleteAppRoute),
       preHandler: passport.authenticate("jwt"),
+      schema: {
+        params: zodToJsonSchema(selectAppSchema.pick({ id: true })),
+        response: {
+          200: zodToJsonSchema(selectAppSchema),
+        },
+      },
     });
 }

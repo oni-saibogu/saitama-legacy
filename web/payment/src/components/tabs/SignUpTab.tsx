@@ -31,15 +31,17 @@ export default withSuspense(function SignUpTab({
   const { customer } = useAppSelector((state) => state.global);
   const hasPayment = useMemo(() => searchParams.has("payment"), [searchParams]);
 
-  useEffect(() => {
-    dispatch(globalActions.setPayment(null));
-    router.push(pathname);
-  }, [hasPayment]);
+  // useEffect(() => {
+  //  dispatch(globalActions.setPayment(null))
+  //   router.push(pathname);
+  // }, [hasPayment]);
 
   return (
     <As className="flex-1 flex flex-col p-4">
       <Formik
-        initialValues={{ email: email ?? customer?.email ?? "" }}
+        initialValues={{
+          email: email ? email : customer.email ? customer.email : String(),
+        }}
         validationSchema={object({
           email: string().email().required(),
         })}

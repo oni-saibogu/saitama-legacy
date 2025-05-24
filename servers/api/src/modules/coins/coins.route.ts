@@ -1,5 +1,7 @@
+import { array, type z } from "zod";
 import { eq, isNull } from "drizzle-orm";
 import passport from "@fastify/passport";
+import zodToJsonSchema from "zod-to-json-schema";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
 import { format } from "../../core";
@@ -16,7 +18,7 @@ import {
 } from "./coins.controller";
 
 const createCoinRoute = (
-  request: FastifyRequest<{ Body: Zod.infer<typeof insertCoinSchema> }>
+  request: FastifyRequest<{ Body: z.infer<typeof insertCoinSchema> }>
 ) =>
   withUserGuard((user) =>
     insertCoinSchema
@@ -39,8 +41,8 @@ const getCoinsRoute = withUserGuard(async (user) => {
 
 const updateCoinRoute = (
   request: FastifyRequest<{
-    Params: Pick<Zod.infer<typeof selectCoinSchema>, "id">;
-    Body: Partial<Zod.infer<typeof insertCoinSchema>>;
+    Params: Pick<z.infer<typeof selectCoinSchema>, "id">;
+    Body: Partial<z.infer<typeof insertCoinSchema>>;
   }>
 ) =>
   withUserGuard((user) =>
@@ -69,7 +71,7 @@ const updateCoinRoute = (
 
 const deleteCoinRoute = (
   request: FastifyRequest<{
-    Params: Pick<Zod.infer<typeof selectCoinSchema>, "id">;
+    Params: Pick<z.infer<typeof selectCoinSchema>, "id">;
   }>
 ) =>
   withUserGuard((user) =>
@@ -89,27 +91,50 @@ const deleteCoinRoute = (
 export default function registerCoinRoutes(fastify: FastifyInstance) {
   fastify
     .route({
-      url: "/coins/",
+      url: "/",
       method: "POST",
       handler: RequestError.handler(createCoinRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
+      schema: {
+        body: zodToJsonSchema(insertCoinSchema.omit({ creator: true })),
+        response: {
+          201: zodToJsonSchema(selectCoinSchema),
+        },
+      },
     })
     .route({
-      url: "/coins/",
+      url: "/",
       method: "GET",
       handler: RequestError.handler(getCoinsRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
+      schema: {
+        response: {
+          200: zodToJsonSchema(array(selectCoinSchema)),
+        },
+      },
     })
     .route({
-      url: "/coins/:id/",
+      url: "/:id/",
       method: "PATCH",
       handler: RequestError.handler(updateCoinRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
+      schema: {
+        params: zodToJsonSchema(selectCoinSchema.pick({ id: true })),
+        response: {
+          200: zodToJsonSchema(selectCoinSchema),
+        },
+      },
     })
     .route({
-      url: "/coins/:id/",
+      url: "/:id/",
       method: "DELETE",
       handler: RequestError.handler(deleteCoinRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
+      schema: {
+        params: zodToJsonSchema(selectCoinSchema.pick({ id: true })),
+        response: {
+          200: zodToJsonSchema(selectCoinSchema),
+        },
+      },
     });
 }

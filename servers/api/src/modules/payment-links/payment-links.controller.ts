@@ -1,3 +1,4 @@
+import type { z } from "zod";
 import { and, eq, inArray } from "drizzle-orm";
 
 import type { Database } from "../../db";
@@ -11,13 +12,13 @@ import type {
 
 export const createPaymentLink = (
   db: Database,
-  value: Zod.infer<typeof insertPaymentLinkSchema>
+  value: z.infer<typeof insertPaymentLinkSchema>
 ) => db.insert(paymentLinks).values(value).returning().execute();
 
 export const getPaymentLinkByAppAndId = async (
   db: Database,
-  app: Zod.infer<typeof selectAppSchema>["id"],
-  id: Zod.infer<typeof selectPaymentSchema>["id"]
+  app: z.infer<typeof selectAppSchema>["id"],
+  id: z.infer<typeof selectPaymentSchema>["id"]
 ) => {
   const paymentLink = await db.query.paymentLinks
     .findFirst({
@@ -37,21 +38,33 @@ export const getPaymentLinkByAppAndId = async (
   }
 };
 
-export const getPaymentLinksByApp = (
+export const getPaymentLinksByApp = async (
   db: Database,
-  app: Zod.infer<typeof selectAppSchema>["id"]
-) =>
-  db.query.paymentLinks
+  app: z.infer<typeof selectAppSchema>["id"]
+) => {
+  const responnse = await db.query.paymentLinks
     .findMany({
       where: eq(paymentLinks.app, app),
     })
     .execute();
 
+  return Promise.all(
+    responnse.map(async (paymentLink) => ({
+      ...paymentLink,
+      networks: await db.query.networks
+        .findMany({
+          where: inArray(networks.id, paymentLink.networks),
+        })
+        .execute(),
+    }))
+  );
+};
+
 export const updatePaymentLinkByAppAndId = async (
   db: Database,
-  app: Zod.infer<typeof selectAppSchema>["id"],
-  id: Zod.infer<typeof selectPaymentLinkSchema>["id"],
-  value: Partial<Zod.infer<typeof insertPaymentLinkSchema>>
+  app: z.infer<typeof selectAppSchema>["id"],
+  id: z.infer<typeof selectPaymentLinkSchema>["id"],
+  value: Partial<z.infer<typeof insertPaymentLinkSchema>>
 ) =>
   db
     .update(paymentLinks)
@@ -62,8 +75,8 @@ export const updatePaymentLinkByAppAndId = async (
 
 export const deletePaymentLinkByAppAndId = async (
   db: Database,
-  app: Zod.infer<typeof selectAppSchema>["id"],
-  id: Zod.infer<typeof selectPaymentSchema>["id"]
+  app: z.infer<typeof selectAppSchema>["id"],
+  id: z.infer<typeof selectPaymentSchema>["id"]
 ) =>
   db
     .delete(paymentLinks)

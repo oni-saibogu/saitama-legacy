@@ -1,3 +1,4 @@
+import type { z } from "zod";
 import { and, eq } from "drizzle-orm";
 
 import type { Database } from "../../db";
@@ -10,19 +11,19 @@ import type {
 
 export const createWebhook = (
   db: Database,
-  value: Zod.infer<typeof insertWebhookSchema>
+  value: z.infer<typeof insertWebhookSchema>
 ) => db.insert(webhooks).values(value).returning().execute();
 
 export const getWebhooksByApp = (
   db: Database,
-  app: Zod.infer<typeof selectAppSchema>["id"]
+  app: z.infer<typeof selectAppSchema>["id"]
 ) => db.query.webhooks.findMany({ where: eq(webhooks.app, app) }).execute();
 
 export const updateWebhookByAppAndId = (
   db: Database,
-  app: Zod.infer<typeof selectAppSchema>["id"],
-  id: Zod.infer<typeof selectWebhookSchema>["id"],
-  value: Partial<Zod.infer<typeof insertWebhookSchema>>
+  app: z.infer<typeof selectAppSchema>["id"],
+  id: z.infer<typeof selectWebhookSchema>["id"],
+  value: Partial<z.infer<typeof insertWebhookSchema>>
 ) =>
   db
     .update(webhooks)
@@ -33,8 +34,8 @@ export const updateWebhookByAppAndId = (
 
 export const deleteWebhookByAppAndId = (
   db: Database,
-  id: Zod.infer<typeof selectWebhookSchema>["id"],
-  app: Zod.infer<typeof selectAppSchema>["id"]
+  id: z.infer<typeof selectWebhookSchema>["id"],
+  app: z.infer<typeof selectAppSchema>["id"]
 ) =>
   db
     .delete(webhooks)

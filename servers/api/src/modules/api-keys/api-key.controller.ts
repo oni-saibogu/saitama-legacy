@@ -1,3 +1,4 @@
+import type { z } from "zod";
 import { promisify } from "util";
 import { and, eq } from "drizzle-orm";
 import { generateKeyPair } from "crypto";
@@ -14,7 +15,7 @@ import type {
 
 export const createApiKey = async (
   db: Database,
-  value: Zod.infer<typeof insertApiKeySchema>
+  value: z.infer<typeof insertApiKeySchema>
 ) => {
   const keypair = await promisify(generateKeyPair)("ed25519", {
     publicKeyEncoding: { type: "spki", format: "der" },
@@ -39,7 +40,7 @@ export const createApiKey = async (
 
 export const getApiKeysByApp = async (
   db: Database,
-  app: Zod.infer<typeof selectAppSchema>["id"]
+  app: z.infer<typeof selectAppSchema>["id"]
 ) =>
   db.query.apiKeys
     .findMany({
@@ -49,8 +50,8 @@ export const getApiKeysByApp = async (
 
 export const deleteApiKeyByAppAndId = (
   db: Database,
-  app: Zod.infer<typeof selectAppSchema>["id"],
-  id: Zod.infer<typeof selectApiKeySchema>["id"]
+  app: z.infer<typeof selectAppSchema>["id"],
+  id: z.infer<typeof selectApiKeySchema>["id"]
 ) =>
   db
     .delete(apiKeys)

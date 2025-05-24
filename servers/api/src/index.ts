@@ -1,7 +1,9 @@
-import Fastify, { type FastifyRequest } from "fastify";
+import type { z } from "zod";
 import { readFileSync } from "fs";
 import fastifyCors from "@fastify/cors";
+import fastifySwagger from "@fastify/swagger";
 import fastifyPassport from "@fastify/passport";
+import Fastify, { type FastifyRequest } from "fastify";
 import fastifySecureSession from "@fastify/secure-session";
 import { ExtractJwt, Strategy as JWTStrategy } from "passport-jwt";
 
@@ -27,6 +29,12 @@ function main() {
     logger: true,
     ignoreDuplicateSlashes: true,
     ignoreTrailingSlash: true,
+    ajv: {
+      customOptions: {
+        strict: true,
+        allowUnionTypes: true,
+      },
+    },
   });
 
   fastify.register(fastifySecureSession, {
@@ -38,6 +46,30 @@ function main() {
 
   fastify.register(fastifyPassport.initialize());
   fastify.register(fastifyPassport.secureSession());
+  fastify.register(fastifySwagger, {
+    openapi: {
+      openapi: "3.0.0",
+      info: {
+        title: "Saitama API Documentation",
+        description:
+          "Explore resources, tutorials, API docs and dynamic examples to get most out of saitama's developer platform.",
+        version: "1.0.0",
+      },
+      components: {
+        securitySchemes: {
+          apiKey: {
+            type: "apiKey",
+            name: "apiKey",
+            in: "header",
+          },
+          authorization: {
+            type: "http",
+            scheme: "Bearer",
+          },
+        },
+      },
+    },
+  });
 
   fastifyPassport.use("apiKey", new ApiKeyStrategy());
   fastifyPassport.use("firebase", new FirebaseStrategy());
@@ -69,13 +101,13 @@ function main() {
   );
 
   fastifyPassport.registerUserSerializer<
-    Zod.infer<typeof selectUserSchema>,
-    Pick<Zod.infer<typeof selectUserSchema>, "id">
+    z.infer<typeof selectUserSchema>,
+    Pick<z.infer<typeof selectUserSchema>, "id">
   >(async (user) => ({ id: user.id }));
 
   fastifyPassport.registerUserDeserializer<
-    Pick<Zod.infer<typeof selectUserSchema>, "id">,
-    Zod.infer<typeof selectUserSchema>
+    Pick<z.infer<typeof selectUserSchema>, "id">,
+    z.infer<typeof selectUserSchema>
   >(async (payload) => {
     const user = await getUserById(db, payload.id);
 

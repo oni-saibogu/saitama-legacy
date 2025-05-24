@@ -1,12 +1,16 @@
+import { array, type z } from "zod";
 import crypto from "crypto";
 import passport from "@fastify/passport";
+import zodToJsonSchema from "zod-to-json-schema";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
 import { getEnv } from "../../env";
 import { format } from "../../core";
 import { db } from "../../instances";
 import { RequestError } from "../../error";
+import type { chains } from "../../config";
 import { withUserGuard } from "../../guards";
+import { getNetworkById } from "../networks/networks.controller";
 import { insertWalletSchema, selectWalletSchema } from "../../db/zod";
 import { generateAddressFromIndex } from "../../core/wallet/generate";
 import {
@@ -15,11 +19,9 @@ import {
   getWalletsByApp,
   updateWalletByAppAndId,
 } from "./wallet.controller";
-import { getNetworkById } from "../networks/networks.controller";
-import type { chains } from "../../config";
 
 const createWalletRoute = async (
-  request: FastifyRequest<{ Body: Zod.infer<typeof insertWalletSchema> }>
+  request: FastifyRequest<{ Body: z.infer<typeof insertWalletSchema> }>
 ) =>
   insertWalletSchema
     .omit({ app: true, generated: true })
@@ -63,8 +65,8 @@ export const getWalletsRoute = async (request: FastifyRequest) =>
 
 const updateWalletRoute = async (
   request: FastifyRequest<{
-    Params: Zod.infer<typeof selectWalletSchema>["id"];
-    Body: Partial<Zod.infer<typeof insertWalletSchema>>;
+    Params: z.infer<typeof selectWalletSchema>["id"];
+    Body: Partial<z.infer<typeof insertWalletSchema>>;
   }>
 ) =>
   withUserGuard((user) =>
@@ -94,7 +96,7 @@ const updateWalletRoute = async (
 
 const deleteWalletRoute = async (
   request: FastifyRequest<{
-    Params: Zod.infer<typeof selectWalletSchema>["id"];
+    Params: z.infer<typeof selectWalletSchema>["id"];
   }>
 ) =>
   withUserGuard((user) =>
@@ -113,26 +115,51 @@ export default function registerWalletRoutes(fastify: FastifyInstance) {
   fastify
     .route({
       method: "POST",
-      url: "/wallets/",
+      url: "/",
       handler: RequestError.handler(createWalletRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
+      schema: {
+        body: zodToJsonSchema(
+          insertWalletSchema.omit({ app: true, generated: true })
+        ),
+        response: {
+          201: zodToJsonSchema(selectWalletSchema),
+        },
+      },
     })
     .route({
       method: "GET",
-      url: "/wallets",
+      url: "/",
       handler: RequestError.handler(getWalletsRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
+      schema: {
+        response: {
+          200: zodToJsonSchema(array(selectWalletSchema)),
+        },
+      },
     })
     .route({
       method: "PATCH",
-      url: "/wallets/:id/",
+      url: "/:id/",
       handler: RequestError.handler(updateWalletRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
+      schema: {
+        params: zodToJsonSchema(selectWalletSchema.pick({ id: true })),
+        response: {
+          200: zodToJsonSchema(selectWalletSchema),
+        },
+      },
     })
     .route({
       method: "DELETE",
-      url: "/wallets/:id/",
+      url: "/:id/",
       handler: RequestError.handler(deleteWalletRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
+      schema: {
+        params: zodToJsonSchema(selectWalletSchema.pick({ id: true })),
+        response: {
+          200: zodToJsonSchema(selectWalletSchema),
+        },
+      },
     });
 }

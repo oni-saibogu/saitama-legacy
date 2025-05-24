@@ -12,7 +12,7 @@ export const createUser = (
 
 export const getUserById = (
   db: Database,
-  id: Zod.infer<typeof selectUserSchema>["id"]
+  id: z.infer<typeof selectUserSchema>["id"]
 ) =>
   db.query.users
     .findFirst({
@@ -22,7 +22,7 @@ export const getUserById = (
 
 export const updateUserById = (
   db: Database,
-  id: Zod.infer<typeof selectUserSchema>["id"],
+  id: z.infer<typeof selectUserSchema>["id"],
   values: Partial<z.infer<typeof insertUserSchema>>
 ) => db.update(users).set(values).where(eq(users.id, id)).execute();
 

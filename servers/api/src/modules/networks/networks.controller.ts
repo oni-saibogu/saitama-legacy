@@ -1,4 +1,6 @@
+import type { z } from "zod";
 import { and, eq, isNull } from "drizzle-orm";
+
 import type { Database } from "../../db";
 import { networks } from "../../db/schema";
 import type { selectNetworkSchema } from "../../db/zod";
@@ -24,7 +26,7 @@ export const getNetworks = (db: Database) =>
 
 export const getNetworkById = (
   db: Database,
-  id: Zod.infer<typeof selectNetworkSchema>["id"]
+  id: z.infer<typeof selectNetworkSchema>["id"]
 ) =>
   db.query.networks
     .findFirst({

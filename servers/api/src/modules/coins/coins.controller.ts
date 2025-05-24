@@ -1,4 +1,6 @@
+import type { z } from "zod";
 import { and, eq, SQL } from "drizzle-orm";
+
 import type { Database } from "../../db";
 import { coins } from "../../db/schema";
 import type {
@@ -9,7 +11,7 @@ import type {
 
 export const createCoin = (
   db: Database,
-  value: Zod.infer<typeof insertCoinSchema>
+  value: z.infer<typeof insertCoinSchema>
 ) => db.insert(coins).values(value).returning().execute();
 
 export const getCoins = (db: Database, where?: SQL<unknown>) =>
@@ -17,9 +19,9 @@ export const getCoins = (db: Database, where?: SQL<unknown>) =>
 
 export const updateCoinByUserAndId = (
   db: Database,
-  user: Zod.infer<typeof selectUserSchema>["id"],
-  id: Zod.infer<typeof selectCoinSchema>["id"],
-  value: Partial<Zod.infer<typeof insertCoinSchema>>
+  user: z.infer<typeof selectUserSchema>["id"],
+  id: z.infer<typeof selectCoinSchema>["id"],
+  value: Partial<z.infer<typeof insertCoinSchema>>
 ) =>
   db
     .update(coins)
@@ -30,8 +32,8 @@ export const updateCoinByUserAndId = (
 
 export const deleteCoinByUserAndId = (
   db: Database,
-  user: Zod.infer<typeof selectUserSchema>["id"],
-  id: Zod.infer<typeof selectCoinSchema>["id"]
+  user: z.infer<typeof selectUserSchema>["id"],
+  id: z.infer<typeof selectCoinSchema>["id"]
 ) =>
   db
     .delete(coins)

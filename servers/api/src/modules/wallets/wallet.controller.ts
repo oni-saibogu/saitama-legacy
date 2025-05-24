@@ -1,3 +1,4 @@
+import type { z } from "zod";
 import { and, eq } from "drizzle-orm";
 
 import type { Database } from "../../db";
@@ -10,7 +11,7 @@ import type {
 
 export const createWallet = (
   db: Database,
-  value: Zod.infer<typeof insertWalletSchema>
+  value: z.infer<typeof insertWalletSchema>
 ) =>
   db
     .insert(wallets)
@@ -24,7 +25,7 @@ export const createWallet = (
 
 export const getWalletsByApp = (
   db: Database,
-  app: Zod.infer<typeof selectAppSchema>["id"]
+  app: z.infer<typeof selectAppSchema>["id"]
 ) =>
   db.query.wallets
     .findMany({
@@ -34,9 +35,9 @@ export const getWalletsByApp = (
 
 export const updateWalletByAppAndId = (
   db: Database,
-  app: Zod.infer<typeof selectAppSchema>["id"],
-  id: Zod.infer<typeof selectWalletSchema>["id"],
-  value: Partial<Zod.infer<typeof insertWalletSchema>>
+  app: z.infer<typeof selectAppSchema>["id"],
+  id: z.infer<typeof selectWalletSchema>["id"],
+  value: Partial<z.infer<typeof insertWalletSchema>>
 ) =>
   db
     .update(wallets)
@@ -53,8 +54,8 @@ export const updateWalletByAppAndId = (
 
 export const deleteWalletByAppAndId = (
   db: Database,
-  app: Zod.infer<typeof selectAppSchema>["id"],
-  id: Zod.infer<typeof selectWalletSchema>["id"]
+  app: z.infer<typeof selectAppSchema>["id"],
+  id: z.infer<typeof selectWalletSchema>["id"]
 ) =>
   db
     .delete(wallets)

@@ -1,3 +1,4 @@
+import type { z } from "zod";
 import { and, eq } from "drizzle-orm";
 
 import { apps } from "../../db/schema";
@@ -10,12 +11,12 @@ import type {
 
 export const createApp = (
   db: Database,
-  values: Zod.infer<typeof insertAppSchema>
+  values: z.infer<typeof insertAppSchema>
 ) => db.insert(apps).values(values).returning().execute();
 
 export const getAppsByUser = (
   db: Database,
-  user: Zod.infer<typeof selectUserSchema>["id"]
+  user: z.infer<typeof selectUserSchema>["id"]
 ) =>
   db.query.apps
     .findMany({
@@ -28,8 +29,8 @@ export const getAppsByUser = (
 
 export const getAppByUserAndId = (
   db: Database,
-  user: Zod.infer<typeof selectUserSchema>["id"],
-  id: Zod.infer<typeof selectAppSchema>["id"]
+  user: z.infer<typeof selectUserSchema>["id"],
+  id: z.infer<typeof selectAppSchema>["id"]
 ) =>
   db.query.apps.findFirst({
     where: and(eq(apps.id, id), eq(apps.user, user)),
@@ -37,9 +38,9 @@ export const getAppByUserAndId = (
 
 export const updateAppByUserAndId = (
   db: Database,
-  user: Zod.infer<typeof selectUserSchema>["id"],
-  id: Zod.infer<typeof selectAppSchema>["id"],
-  values: Partial<Zod.infer<typeof insertAppSchema>>
+  user: z.infer<typeof selectUserSchema>["id"],
+  id: z.infer<typeof selectAppSchema>["id"],
+  values: Partial<z.infer<typeof insertAppSchema>>
 ) =>
   db
     .update(apps)
@@ -50,8 +51,8 @@ export const updateAppByUserAndId = (
 
 export const deleteAppByUserAndId = (
   db: Database,
-  user: Zod.infer<typeof selectUserSchema>["id"],
-  id: Zod.infer<typeof selectAppSchema>["id"]
+  user: z.infer<typeof selectUserSchema>["id"],
+  id: z.infer<typeof selectAppSchema>["id"]
 ) =>
   db
     .delete(apps)

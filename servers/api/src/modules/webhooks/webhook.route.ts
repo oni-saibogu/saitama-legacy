@@ -1,4 +1,6 @@
+import { array, type z } from "zod";
 import passport from "@fastify/passport";
+import zodToJsonSchema from "zod-to-json-schema";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
 import { format } from "../../core";
@@ -14,7 +16,7 @@ import {
 } from "./webhook.controller";
 
 const createWebhookRoute = (
-  request: FastifyRequest<{ Body: Zod.infer<typeof insertWebhookSchema> }>
+  request: FastifyRequest<{ Body: z.infer<typeof insertWebhookSchema> }>
 ) =>
   withUserGuard((user) =>
     insertWebhookSchema
@@ -31,8 +33,8 @@ const getWebhooksRoute = withUserGuard((user) =>
 
 const updateWebhookRoute = (
   request: FastifyRequest<{
-    Params: Pick<Zod.infer<typeof selectWebhookSchema>, "id">;
-    Body: Partial<Zod.infer<typeof insertWebhookSchema>>;
+    Params: Pick<z.infer<typeof selectWebhookSchema>, "id">;
+    Body: Partial<z.infer<typeof insertWebhookSchema>>;
   }>
 ) =>
   withUserGuard((user) =>
@@ -62,7 +64,7 @@ const updateWebhookRoute = (
 
 const deleteWebhookRoute = (
   request: FastifyRequest<{
-    Params: Pick<Zod.infer<typeof selectWebhookSchema>, "id">;
+    Params: Pick<z.infer<typeof selectWebhookSchema>, "id">;
   }>
 ) =>
   withUserGuard((user) =>
@@ -81,26 +83,49 @@ export default function registerWebhookRoutes(fastify: FastifyInstance) {
   fastify
     .route({
       method: "POST",
-      url: "/webhooks/",
+      url: "/",
       handler: RequestError.handler(createWebhookRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
+      schema: {
+        body: zodToJsonSchema(insertWebhookSchema.omit({ app: true })),
+        response: {
+          201: zodToJsonSchema(selectWebhookSchema),
+        },
+      },
     })
     .route({
       method: "GET",
-      url: "/webhooks/",
+      url: "/",
       handler: RequestError.handler(getWebhooksRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
+      schema: {
+        response: {
+          200: zodToJsonSchema(array(selectWebhookSchema)),
+        },
+      },
     })
     .route({
       method: "PATCH",
-      url: "/webhooks/:id/",
+      url: "/:id/",
       handler: RequestError.handler(updateWebhookRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
+      schema: {
+        params: zodToJsonSchema(selectWebhookSchema.pick({ id: true })),
+        response: {
+          201: zodToJsonSchema(selectWebhookSchema),
+        },
+      },
     })
     .route({
       method: "DELETE",
-      url: "/webhooks/:id/",
+      url: "/:id/",
       handler: RequestError.handler(deleteWebhookRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
+      schema: {
+        params: zodToJsonSchema(selectWebhookSchema.pick({ id: true })),
+        response: {
+          200: zodToJsonSchema(selectWebhookSchema),
+        },
+      },
     });
 }

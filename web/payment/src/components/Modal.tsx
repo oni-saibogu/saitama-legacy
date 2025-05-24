@@ -26,7 +26,7 @@ export default function Modal({
     >
       <DialogBackdrop className="fixed inset-0 bg-black/50" />
       <div className="fixed inset-0 flex items-center justify-center">
-        <DialogPanel className="relative w-9/11 h-xl flex flex-col bg-white rounded-md lt-md:flex-col sm:max-w-sm sm:w-10/11 dark:bg-dark dark:text-white">
+        <DialogPanel className="relative w-9/11 min-h-[37rem] flex flex-col bg-white rounded-md lt-md:flex-col sm:max-w-sm sm:w-10/11 dark:bg-dark dark:text-white">
           <div className="flex items-center md:px-4 py-4">
             <button
               className="p-2 rounded-full dark:bg-dark-200/75"

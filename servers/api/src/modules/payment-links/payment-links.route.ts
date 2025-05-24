@@ -1,11 +1,17 @@
 import passport from "@fastify/passport";
+import { array, object, type z } from "zod";
+import zodToJsonSchema from "zod-to-json-schema";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
 import { format } from "../../core";
 import { db } from "../../instances";
 import { RequestError } from "../../error";
 import { withUserGuard } from "../../guards";
-import { insertPaymentLinkSchema, selectPaymentLinkSchema } from "../../db/zod";
+import {
+  insertPaymentLinkSchema,
+  selectNetworkSchema,
+  selectPaymentLinkSchema,
+} from "../../db/zod";
 import {
   createPaymentLink,
   deletePaymentLinkByAppAndId,
@@ -15,7 +21,7 @@ import {
 } from "./payment-links.controller";
 
 const createPaymentLinkRoute = (
-  request: FastifyRequest<{ Body: Zod.infer<typeof insertPaymentLinkSchema> }>
+  request: FastifyRequest<{ Body: z.infer<typeof insertPaymentLinkSchema> }>
 ) =>
   withUserGuard((user) =>
     insertPaymentLinkSchema
@@ -36,7 +42,7 @@ const getPaymentLinksRoute = () =>
 
 const getPaymentLinkRoute = (
   request: FastifyRequest<{
-    Params: Pick<Zod.infer<typeof selectPaymentLinkSchema>, "id">;
+    Params: Pick<z.infer<typeof selectPaymentLinkSchema>, "id">;
   }>
 ) =>
   withUserGuard((user) =>
@@ -56,8 +62,8 @@ const getPaymentLinkRoute = (
 
 const updatePaymentLinkRoute = (
   request: FastifyRequest<{
-    Params: Pick<Zod.infer<typeof selectPaymentLinkSchema>, "id">;
-    Body: Partial<Zod.infer<typeof insertPaymentLinkSchema>>;
+    Params: Pick<z.infer<typeof selectPaymentLinkSchema>, "id">;
+    Body: Partial<z.infer<typeof insertPaymentLinkSchema>>;
   }>
 ) =>
   withUserGuard((user) =>
@@ -87,7 +93,7 @@ const updatePaymentLinkRoute = (
 
 const deletePaymentLinkRoute = (
   request: FastifyRequest<{
-    Params: Pick<Zod.infer<typeof selectPaymentLinkSchema>, "id">;
+    Params: Pick<z.infer<typeof selectPaymentLinkSchema>, "id">;
   }>
 ) =>
   withUserGuard((user) =>
@@ -113,32 +119,77 @@ export default function registerPaymentLinkRoutes(fastify: FastifyInstance) {
   fastify
     .route({
       method: "POST",
-      url: "/payment-links/",
+      url: "/",
       handler: RequestError.handler(createPaymentLinkRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
+      schema: {
+        body: zodToJsonSchema(insertPaymentLinkSchema.omit({ app: true })),
+        response: {
+          201: zodToJsonSchema(selectPaymentLinkSchema),
+        },
+      },
     })
     .route({
       method: "GET",
-      url: "/payment-links/",
+      url: "/",
       handler: RequestError.handler(getPaymentLinksRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
+      schema: {
+        response: {
+          200: zodToJsonSchema(
+            array(
+              selectPaymentLinkSchema.and(
+                object({
+                  networks: array(selectNetworkSchema),
+                })
+              )
+            ),
+            { definitions: { selectNetworkSchema } }
+          ),
+        },
+      },
     })
     .route({
       method: "GET",
-      url: "/payment-links/:id/",
+      url: "/:id/",
       handler: RequestError.handler(getPaymentLinkRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
+      schema: {
+        params: zodToJsonSchema(selectPaymentLinkSchema.pick({ id: true })),
+        response: {
+          200: zodToJsonSchema(
+            selectPaymentLinkSchema.and(
+              object({
+                networks: array(selectNetworkSchema),
+              })
+            ),
+            { definitions: { selectNetworkSchema } }
+          ),
+        },
+      },
     })
     .route({
       method: "PATCH",
-      url: "/payment-links/:id/",
+      url: "/:id/",
       handler: RequestError.handler(updatePaymentLinkRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
+      schema: {
+        params: zodToJsonSchema(selectPaymentLinkSchema.pick({ id: true })),
+        response: {
+          200: zodToJsonSchema(selectPaymentLinkSchema),
+        },
+      },
     })
     .route({
       method: "DELETE",
-      url: "/payment-links/:id/",
+      url: "/:id/",
       handler: RequestError.handler(deletePaymentLinkRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
+      schema: {
+        params: zodToJsonSchema(selectPaymentLinkSchema.pick({ id: true })),
+        response: {
+          200: zodToJsonSchema(selectPaymentLinkSchema),
+        },
+      },
     });
 }

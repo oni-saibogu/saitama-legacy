@@ -1,4 +1,6 @@
+import { array, type z } from "zod";
 import passport from "@fastify/passport";
+import zodToJsonSchema from "zod-to-json-schema";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
 import { format } from "../../core";
@@ -15,7 +17,7 @@ import {
 } from "./customers.controller";
 
 const createCustomerRoute = (
-  request: FastifyRequest<{ Body: Zod.infer<typeof insertCustomerSchema> }>
+  request: FastifyRequest<{ Body: z.infer<typeof insertCustomerSchema> }>
 ) =>
   withUserGuard((user) =>
     insertCustomerSchema
@@ -37,7 +39,7 @@ const getCustomersRoute = withUserGuard((user) =>
 
 const getCustomerRoute = (
   request: FastifyRequest<{
-    Params: Pick<Zod.infer<typeof selectCustomerSchema>, "id">;
+    Params: Pick<z.infer<typeof selectCustomerSchema>, "id">;
   }>
 ) =>
   withUserGuard((user) =>
@@ -54,8 +56,8 @@ const getCustomerRoute = (
 
 const updateCustomerRoute = (
   request: FastifyRequest<{
-    Params: Pick<Zod.infer<typeof selectCustomerSchema>, "id">;
-    Body: Partial<Zod.infer<typeof insertCustomerSchema>>;
+    Params: Pick<z.infer<typeof selectCustomerSchema>, "id">;
+    Body: Partial<z.infer<typeof insertCustomerSchema>>;
   }>
 ) =>
   withUserGuard((user) =>
@@ -85,7 +87,7 @@ const updateCustomerRoute = (
 
 const deleteCustomerRoute = (
   request: FastifyRequest<{
-    Params: Pick<Zod.infer<typeof selectCustomerSchema>, "id">;
+    Params: Pick<z.infer<typeof selectCustomerSchema>, "id">;
   }>
 ) =>
   selectCustomerSchema
@@ -107,32 +109,61 @@ export default function registerCustomerRoutes(fastify: FastifyInstance) {
   fastify
     .route({
       method: "POST",
-      url: "/customers/",
+      url: "/",
       handler: RequestError.handler(createCustomerRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
+      schema: {
+        body: zodToJsonSchema(insertCustomerSchema.omit({ app: true })),
+        response: {
+          201: zodToJsonSchema(selectCustomerSchema),
+        },
+      },
     })
     .route({
       method: "GET",
-      url: "/customers/",
+      url: "/",
       handler: RequestError.handler(getCustomersRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
+      schema: {
+        response: {
+          200: zodToJsonSchema(array(selectCustomerSchema)),
+        },
+      },
     })
     .route({
       method: "GET",
-      url: "/customers/:id/",
+      url: "/:id/",
       handler: RequestError.handler(getCustomerRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
+      schema: {
+        response: {
+          200: zodToJsonSchema(selectCustomerSchema),
+        },
+      },
     })
     .route({
       method: "PATCH",
-      url: "/customers/:id/",
+      url: "/:id/",
       handler: RequestError.handler(updateCustomerRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
+      schema: {
+        params: zodToJsonSchema(selectCustomerSchema.pick({ id: true })),
+        body: zodToJsonSchema(insertCustomerSchema.partial()),
+        response: {
+          201: zodToJsonSchema(selectCustomerSchema),
+        },
+      },
     })
     .route({
       method: "DELETE",
-      url: "/customers/:id/",
+      url: "/:id/",
       handler: RequestError.handler(deleteCustomerRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
+      schema: {
+        params: zodToJsonSchema(selectCustomerSchema.pick({ id: true })),
+        response: {
+          200: zodToJsonSchema(selectCustomerSchema),
+        },
+      },
     });
 }

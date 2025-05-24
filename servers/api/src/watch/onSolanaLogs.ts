@@ -1,5 +1,6 @@
-import { and, desc, eq, or } from "drizzle-orm";
+import type { z } from "zod";
 import { web3 } from "@coral-xyz/anchor";
+import { and, desc, eq, or } from "drizzle-orm";
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 import { format } from "../core";
@@ -69,7 +70,7 @@ const onSolanaLogs = async (
       .execute();
 
     const processInstruction = (
-      wallet: Omit<Zod.infer<typeof selectWalletSchema>, "metadata">
+      wallet: Omit<z.infer<typeof selectWalletSchema>, "metadata">
     ) => {
       console.log(
         format("[wallet.process] processing payment for wallet=%", wallet.id)
@@ -78,7 +79,7 @@ const onSolanaLogs = async (
       return Promise.all(
         instructions.map(async (instruction) => {
           let payment;
-          const data: Partial<Zod.infer<typeof insertPaymentSchema>> = {};
+          const data: Partial<z.infer<typeof insertPaymentSchema>> = {};
 
           if (instruction.programId.equals(web3.SystemProgram.programId)) {
             if ("parsed" in instruction) {

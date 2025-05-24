@@ -1,5 +1,7 @@
 import "dotenv/config";
 
+import { format } from "./core/utils";
+
 type Env = "MNEMONIC"|"HOST"|"PORT"|"TRON_RPC_URL"|"SOLANA_RPC_URL"|"ETHEREUM_RPC_URL"|"DATABASE_URL"|"SECRET_KEY"|"SERVICE_ACCOUNT";
 
 export const getEnv = <T extends object | number | string | null = string>(
@@ -14,5 +16,5 @@ export const getEnv = <T extends object | number | string | null = string>(
     } catch {
       return (refine ? refine(value) : value) as T;
     }
-  return null;
+  throw new Error(format("% not found in env file", name));
 };
