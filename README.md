@@ -68,7 +68,7 @@ bun dev
 ```
 
 
-[![Postman Logo](https://www.vectorlogo.zone/logos/getpostman/getpostman-ar21~bgwhite.svg)](https://.postman.co/workspace/dev~9927637c-4820-4663-8761-3d6ba542bf3b/collection/18547775-28a5341c-fe5a-450c-b77e-c993e36cafc1?action=share&creator=18547775)
+[![Postman Logo](https://www.vectorlogo.zone/logos/getpostman/getpostman-ar21.svg)](https://.postman.co/workspace/dev~9927637c-4820-4663-8761-3d6ba542bf3b/collection/18547775-28a5341c-fe5a-450c-b77e-c993e36cafc1?action=share&creator=18547775)
 
 
 
