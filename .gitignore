@@ -4,7 +4,8 @@ node_modules
 dist
 sugar.log 
 dist 
-.env.*
+.env
+.env.prod
 out
 apps/examples
 serviceAccount.json

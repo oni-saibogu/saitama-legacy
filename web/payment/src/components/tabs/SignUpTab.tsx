@@ -40,7 +40,11 @@ export default withSuspense(function SignUpTab({
     <As className="flex-1 flex flex-col p-4">
       <Formik
         initialValues={{
-          email: email ? email : customer.email ? customer.email : String(),
+          email: email
+            ? email
+            : customer && customer.email
+            ? customer.email
+            : String(),
         }}
         validationSchema={object({
           email: string().email().required(),
