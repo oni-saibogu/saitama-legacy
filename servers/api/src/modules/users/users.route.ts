@@ -15,6 +15,9 @@ export default function registerUserRoutes(fastify: FastifyInstance) {
     handler: RequestError.handler(getUserRoute),
     preHandler: passport.authenticate(["jwt", "firebase"]),
     schema: {
+      tags: ["users"],
+      description:
+        "This resource is to retrieve information about a single user.",
       response: {
         200: zodToJsonSchema(selectUserSchema),
       },

@@ -1,24 +1,30 @@
 import { array, type z } from "zod";
-import crypto from "crypto";
+import { HDNodeWallet } from "ethers";
+import { web3 } from "@coral-xyz/anchor";
 import passport from "@fastify/passport";
 import zodToJsonSchema from "zod-to-json-schema";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
 import { getEnv } from "../../env";
 import { format } from "../../core";
-import { db } from "../../instances";
+import { encrypt } from "../../core/secret";
 import { RequestError } from "../../error";
 import type { chains } from "../../config";
 import { withUserGuard } from "../../guards";
+import { db, secretKey } from "../../instances";
 import { getNetworkById } from "../networks/networks.controller";
-import { insertWalletSchema, selectWalletSchema } from "../../db/zod";
-import { generateAddressFromIndex } from "../../core/wallet/generate";
+import {
+  insertWalletSchema,
+  selectWalletSchema,
+  selectWalletSchema1,
+} from "../../db/zod";
 import {
   createWallet,
   deleteWalletByAppAndId,
   getWalletsByApp,
   updateWalletByAppAndId,
 } from "./wallet.controller";
+import { getWallet } from "../../core/wallet";
 
 const createWalletRoute = async (
   request: FastifyRequest<{ Body: z.infer<typeof insertWalletSchema> }>
@@ -28,40 +34,75 @@ const createWalletRoute = async (
     .partial({ address: true })
     .parseAsync(request.body)
     .then(async (body) => {
-      let wallet = undefined;
-      if (body.address)
-        [wallet] = await createWallet(db, {
-          ...body,
-          app: request.user!.app!.id,
-          address: body.address,
-        });
-      else {
-        const index = crypto.randomInt(1, 10);
-        const network = await getNetworkById(db, body.network);
-        if (network) {
-          const address = await generateAddressFromIndex(
-            getEnv("MNEMONIC")!,
-            index,
-            network.name as unknown as (typeof chains)[number]
-          );
+      let wallet: Awaited<ReturnType<typeof createWallet>>[number] | undefined =
+        undefined;
+
+      if (body.customer) {
+        if (body.network === "solana") {
+          const keypair = web3.Keypair.generate();
+
           [wallet] = await createWallet(db, {
             ...body,
-            address,
-            generated: true,
+            generated: false,
+            address: encrypt(secretKey, Array.from(keypair.secretKey.values())),
             app: request.user!.app!.id,
-            metadata: { index },
+            metadata: {
+              publicKey: keypair.publicKey,
+            },
+          });
+        } else if (body.network === "ethereum") {
+          const keypair = HDNodeWallet.createRandom();
+
+          [wallet] = await createWallet(db, {
+            ...body,
+            generated: false,
+            address: encrypt(secretKey, keypair.privateKey),
+            app: request.user!.app!.id,
+            metadata: {
+              publicKey: keypair.publicKey,
+            },
           });
         } else
           throw new RequestError(
-            404,
-            format("network with id=% not found", body.network)
+            400,
+            format("network=% not supported", body.network)
           );
+      } else {
+        if (body.address)
+          [wallet] = await createWallet(db, {
+            ...body,
+            app: request.user!.app!.id,
+            address: body.address,
+          });
+        else {
+          const network = await getNetworkById(db, body.network);
+          if (network) {
+            const [index, address] = await getWallet(
+              getEnv("MNEMONIC")!,
+              network.name as unknown as (typeof chains)[number]
+            );
+            [wallet] = await createWallet(db, {
+              ...body,
+              address,
+              generated: true,
+              app: request.user!.app!.id,
+              metadata: { index },
+            });
+          } else
+            throw new RequestError(
+              404,
+              format("network with id=% not found", body.network)
+            );
+        }
       }
-      return wallet;
+
+      return selectWalletSchema.parseAsync(wallet);
     });
 
 export const getWalletsRoute = async (request: FastifyRequest) =>
-  getWalletsByApp(db, request.user!.app!.id);
+  array(selectWalletSchema).parseAsync(
+    await getWalletsByApp(db, request.user!.app!.id)
+  );
 
 const updateWalletRoute = async (
   request: FastifyRequest<{
@@ -70,7 +111,7 @@ const updateWalletRoute = async (
   }>
 ) =>
   withUserGuard((user) =>
-    selectWalletSchema
+    selectWalletSchema1
       .pick({ id: true })
       .parseAsync(request.params)
       .then(({ id }) =>
@@ -100,7 +141,7 @@ const deleteWalletRoute = async (
   }>
 ) =>
   withUserGuard((user) =>
-    selectWalletSchema
+    selectWalletSchema1
       .pick({ id: true })
       .parseAsync(request.params)
       .then(async ({ id }) => {
@@ -119,8 +160,12 @@ export default function registerWalletRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(createWalletRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
       schema: {
+        tags: ["wallets"],
+        description: "This resource is to create a unique wallet.",
         body: zodToJsonSchema(
-          insertWalletSchema.omit({ app: true, generated: true })
+          insertWalletSchema
+            .partial({ address: true })
+            .omit({ app: true, generated: true })
         ),
         response: {
           201: zodToJsonSchema(selectWalletSchema),
@@ -133,8 +178,13 @@ export default function registerWalletRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(getWalletsRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
       schema: {
+        tags: ["wallets"],
+        description:
+          "This resource is to retrieve information about all wallets.",
         response: {
-          200: zodToJsonSchema(array(selectWalletSchema)),
+          200: zodToJsonSchema(array(selectWalletSchema), {
+            definitions: { selectWalletSchema },
+          }),
         },
       },
     })
@@ -144,7 +194,10 @@ export default function registerWalletRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(updateWalletRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
       schema: {
-        params: zodToJsonSchema(selectWalletSchema.pick({ id: true })),
+        tags: ["wallets"],
+        description:
+          "This resource is to retrieve information about a single wallet.",
+        params: zodToJsonSchema(selectWalletSchema1.pick({ id: true })),
         response: {
           200: zodToJsonSchema(selectWalletSchema),
         },
@@ -156,7 +209,9 @@ export default function registerWalletRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(deleteWalletRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
       schema: {
-        params: zodToJsonSchema(selectWalletSchema.pick({ id: true })),
+        tags: ["wallets"],
+        description: "This resource is to delete a single wallet.",
+        params: zodToJsonSchema(selectWalletSchema1.pick({ id: true })),
         response: {
           200: zodToJsonSchema(selectWalletSchema),
         },

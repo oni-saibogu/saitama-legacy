@@ -18,7 +18,7 @@ export const createWallet = (
     .values(value)
     .returning()
     .onConflictDoUpdate({
-      target: [wallets.app, wallets.address, wallets.network],
+      target: [wallets.app, wallets.customer, wallets.network, wallets.address],
       set: value,
     })
     .execute();

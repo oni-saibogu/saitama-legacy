@@ -21,7 +21,7 @@ import {
   selectNetworkSchema,
   selectPaymentLinkSchema,
   selectPaymentSchema,
-  selectWalletSchema,
+  selectWalletSchema1,
 } from "../../db/zod";
 
 const createPaymentRoute = (
@@ -95,6 +95,42 @@ const updatePaymentRoute = (
       )
   );
 
+const getSharedSchema = selectPaymentSchema
+  .pick({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    amount: true,
+  })
+  .and(
+    object({
+      paymentLink: selectPaymentLinkSchema,
+      wallet: selectWalletSchema1.pick({
+        id: true,
+        address: true,
+      }),
+      coin: selectCoinSchema
+        .pick({
+          id: true,
+          name: true,
+          ticker: true,
+          decimals: true,
+        })
+        .and(
+          object({
+            network: selectNetworkSchema.pick({
+              id: true,
+              name: true,
+            }),
+          })
+        ),
+      customer: selectCustomerSchema.pick({
+        id: true,
+        email: true,
+      }),
+    })
+  );
+
 export default function registerPaymentkoutes(fastify: FastifyInstance) {
   fastify
     .route({
@@ -103,6 +139,8 @@ export default function registerPaymentkoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(createPaymentRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["payments"],
+        description: "This resource is to create a unique payment.",
         body: zodToJsonSchema(insertPaymentSchema),
         response: {
           201: zodToJsonSchema(selectPaymentSchema),
@@ -115,46 +153,13 @@ export default function registerPaymentkoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(getPaymentsRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["payments"],
+        description:
+          "This resource is to retrieve information about all payments.",
         response: {
-          200: zodToJsonSchema(
-            array(
-              selectPaymentSchema
-                .pick({
-                  id: true,
-                  createdAt: true,
-                  updatedAt: true,
-                  amount: true,
-                })
-                .and(
-                  object({
-                    paymentLink: selectPaymentLinkSchema,
-                    wallet: selectWalletSchema.pick({
-                      id: true,
-                      address: true,
-                    }),
-                    coin: selectCoinSchema
-                      .pick({
-                        id: true,
-                        name: true,
-                        ticker: true,
-                        decimals: true,
-                      })
-                      .and(
-                        object({
-                          network: selectNetworkSchema.pick({
-                            id: true,
-                            name: true,
-                          }),
-                        })
-                      ),
-                    customer: selectCustomerSchema.pick({
-                      id: true,
-                      email: true,
-                    }),
-                  })
-                )
-            )
-          ),
+          200: zodToJsonSchema(array(getSharedSchema), {
+            definitions: { getSharedSchema },
+          }),
         },
       },
     })
@@ -164,42 +169,12 @@ export default function registerPaymentkoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(getPaymentRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["payments"],
+        description:
+          "This resource is to retrieve information about a single payment.",
         params: zodToJsonSchema(selectPaymentSchema.pick({ id: true })),
         response: {
-          200: zodToJsonSchema(
-            selectPaymentSchema
-              .pick({
-                id: true,
-                createdAt: true,
-                updatedAt: true,
-                amount: true,
-              })
-              .and(
-                object({
-                  paymentLink: selectPaymentLinkSchema,
-                  wallet: selectWalletSchema.pick({ id: true, address: true }),
-                  coin: selectCoinSchema
-                    .pick({
-                      id: true,
-                      name: true,
-                      ticker: true,
-                      decimals: true,
-                    })
-                    .and(
-                      object({
-                        network: selectNetworkSchema.pick({
-                          id: true,
-                          name: true,
-                        }),
-                      })
-                    ),
-                  customer: selectCustomerSchema.pick({
-                    id: true,
-                    email: true,
-                  }),
-                })
-              )
-          ),
+          200: zodToJsonSchema(getSharedSchema),
         },
       },
     })
@@ -209,6 +184,9 @@ export default function registerPaymentkoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(updatePaymentRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["payments"],
+        description:
+          "This resource is to update some information about a single payment.",
         params: zodToJsonSchema(selectPaymentSchema.pick({ id: true })),
         response: {
           201: zodToJsonSchema(selectPaymentSchema),

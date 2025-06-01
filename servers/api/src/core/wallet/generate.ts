@@ -1,5 +1,4 @@
 import bip32 from "bip32";
-import { TronWeb } from "tronweb";
 import { HDNodeWallet } from "ethers";
 import * as ecc from "tiny-secp256k1";
 import { mnemonicToSeed } from "bip39";
@@ -7,6 +6,7 @@ import { Keypair } from "@solana/web3.js";
 import { derivePath } from "ed25519-hd-key";
 
 import { format } from "../utils";
+import { tronWeb } from "../../instances";
 
 export const generateAddressFromIndex = async (
   mnemonic: string,
@@ -37,7 +37,6 @@ export const generateAddressFromIndex = async (
     case "tron": {
       const path = format("m/44'/195'/0'/0/%", index);
       const derived = bip32(ecc).fromSeed(seed).derivePath(path);
-      const tronWeb = new TronWeb({ fullHost: "https://api.trongrid.io" });
 
       publicKey = tronWeb.address
         .fromPrivateKey(derived.privateKey!.toHex())
@@ -80,7 +79,6 @@ export const getWalletFromIndex = async (
     case "tron": {
       const path = format("m/44'/195'/0'/0/%", index);
       const derived = bip32(ecc).fromSeed(seed).derivePath(path);
-      const tronWeb = new TronWeb({ fullHost: "https://api.trongrid.io" });
 
       privateKey = derived.privateKey!.toHex();
       publicKey = tronWeb.address

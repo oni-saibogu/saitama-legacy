@@ -13,6 +13,7 @@ export const withUserGuard = <
   skipAppCheck: boolean = false
 ) => {
   return (request: T, _reply: U): ReturnType<Fn> => {
+    console.log(request.user)
     if (request.user && (skipAppCheck ? true : request.user.app))
       return fn(request.user) as ReturnType<Fn>;
     throw new RequestError(

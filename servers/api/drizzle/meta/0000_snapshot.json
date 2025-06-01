@@ -1,5 +1,5 @@
 {
-  "id": "2e6ff342-9fea-446d-bfe3-e3169d1f8a0b",
+  "id": "d23d8cef-a528-402a-8ae6-276c0e703223",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -341,6 +341,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "customer": {
+          "name": "customer",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "metadata": {
           "name": "metadata",
           "type": "json",
@@ -396,6 +402,19 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
+        "wallets_customer_customers_id_fk": {
+          "name": "wallets_customer_customers_id_fk",
+          "tableFrom": "wallets",
+          "tableTo": "customers",
+          "columnsFrom": [
+            "customer"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "wallets_network_networks_id_fk": {
           "name": "wallets_network_networks_id_fk",
           "tableFrom": "wallets",
@@ -412,11 +431,12 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "wallets_app_network_address_unique": {
-          "name": "wallets_app_network_address_unique",
-          "nullsNotDistinct": false,
+        "wallets_app_customer_network_address_unique": {
+          "name": "wallets_app_customer_network_address_unique",
+          "nullsNotDistinct": true,
           "columns": [
             "app",
+            "customer",
             "network",
             "address"
           ]
@@ -491,8 +511,8 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "networks_parent_networks_id_fk": {
-          "name": "networks_parent_networks_id_fk",
+        "parentReference": {
+          "name": "parentReference",
           "tableFrom": "networks",
           "tableTo": "networks",
           "columnsFrom": [
@@ -531,7 +551,7 @@
         },
         "amount": {
           "name": "amount",
-          "type": "text",
+          "type": "bigint",
           "primaryKey": false,
           "notNull": true
         },

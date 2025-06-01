@@ -16,6 +16,9 @@ export default function registerNetworkRoutes(fastify: FastifyInstance) {
     handler: getNetworksRoute,
     preHandler: passport.authenticate(["jwt", "apiKey"]),
     schema: {
+      tags: ["networks"],
+      description:
+        "This resource is to retrieve information about all networks.",
       response: {
         200: zodToJsonSchema(
           array(

@@ -45,13 +45,14 @@ CREATE TABLE "apiKeys" (
 CREATE TABLE "wallets" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"app" uuid NOT NULL,
+	"customer" uuid,
 	"metadata" json,
 	"address" text NOT NULL,
 	"generated" boolean DEFAULT false NOT NULL,
 	"network" uuid NOT NULL,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "wallets_app_network_address_unique" UNIQUE("app","network","address")
+	CONSTRAINT "wallets_app_customer_network_address_unique" UNIQUE NULLS NOT DISTINCT("app","customer","network","address")
 );
 --> statement-breakpoint
 CREATE TABLE "networks" (
@@ -67,7 +68,7 @@ CREATE TABLE "networks" (
 --> statement-breakpoint
 CREATE TABLE "payments" (
 	"id" text PRIMARY KEY NOT NULL,
-	"amount" text NOT NULL,
+	"amount" bigint NOT NULL,
 	"coin" uuid NOT NULL,
 	"signature" text,
 	"paymentLink" uuid NOT NULL,
@@ -119,9 +120,10 @@ ALTER TABLE "coins" ADD CONSTRAINT "coins_network_networks_id_fk" FOREIGN KEY ("
 ALTER TABLE "coins" ADD CONSTRAINT "coins_creator_users_id_fk" FOREIGN KEY ("creator") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "apiKeys" ADD CONSTRAINT "apiKeys_app_apps_id_fk" FOREIGN KEY ("app") REFERENCES "public"."apps"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "wallets" ADD CONSTRAINT "wallets_app_apps_id_fk" FOREIGN KEY ("app") REFERENCES "public"."apps"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "wallets" ADD CONSTRAINT "wallets_customer_customers_id_fk" FOREIGN KEY ("customer") REFERENCES "public"."customers"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "wallets" ADD CONSTRAINT "wallets_network_networks_id_fk" FOREIGN KEY ("network") REFERENCES "public"."networks"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "networks" ADD CONSTRAINT "networks_creator_users_id_fk" FOREIGN KEY ("creator") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "networks" ADD CONSTRAINT "networks_parent_networks_id_fk" FOREIGN KEY ("parent") REFERENCES "public"."networks"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "networks" ADD CONSTRAINT "parentReference" FOREIGN KEY ("parent") REFERENCES "public"."networks"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "payments" ADD CONSTRAINT "payments_coin_coins_id_fk" FOREIGN KEY ("coin") REFERENCES "public"."coins"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "payments" ADD CONSTRAINT "payments_paymentLink_paymentLinks_id_fk" FOREIGN KEY ("paymentLink") REFERENCES "public"."paymentLinks"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "payments" ADD CONSTRAINT "payments_customer_customers_id_fk" FOREIGN KEY ("customer") REFERENCES "public"."customers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

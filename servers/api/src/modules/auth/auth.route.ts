@@ -26,6 +26,8 @@ export default function registerAuthRoutes(fastify: FastifyInstance) {
     handler: RequestError.handler(tokenAuthRoute),
     preHandler: passport.authenticate("firebase"),
     schema: {
+      tags: ["auth"],
+      description: "This resource is to get authentication token.",
       response: {
         200: zodToJsonSchema(
           object({ token: string(), user: selectUserSchema })

@@ -87,6 +87,8 @@ export default function registerWebhookRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(createWebhookRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
       schema: {
+        tags: ["webhooks"],
+        description: "This resource is to create a unique webhook.",
         body: zodToJsonSchema(insertWebhookSchema.omit({ app: true })),
         response: {
           201: zodToJsonSchema(selectWebhookSchema),
@@ -99,8 +101,13 @@ export default function registerWebhookRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(getWebhooksRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
       schema: {
+        tags: ["webhooks"],
+        description:
+          "This resource is to retrieve information about all webhooks.",
         response: {
-          200: zodToJsonSchema(array(selectWebhookSchema)),
+          200: zodToJsonSchema(array(selectWebhookSchema), {
+            definitions: { selectWebhookSchema },
+          }),
         },
       },
     })
@@ -110,6 +117,9 @@ export default function registerWebhookRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(updateWebhookRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
       schema: {
+        tags: ["webhooks"],
+        description:
+          "This resource is to update some information about a single webhook.",
         params: zodToJsonSchema(selectWebhookSchema.pick({ id: true })),
         response: {
           201: zodToJsonSchema(selectWebhookSchema),
@@ -122,6 +132,8 @@ export default function registerWebhookRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(deleteWebhookRoute),
       preHandler: passport.authenticate(["apiKey", "jwt"]),
       schema: {
+        tags: ["webhooks"],
+        description: "This resource is to delete a single webhook.",
         params: zodToJsonSchema(selectWebhookSchema.pick({ id: true })),
         response: {
           200: zodToJsonSchema(selectWebhookSchema),

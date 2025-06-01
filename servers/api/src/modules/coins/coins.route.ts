@@ -96,6 +96,8 @@ export default function registerCoinRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(createCoinRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["coins"],
+        description: "This resource is to create a unique coin.",
         body: zodToJsonSchema(insertCoinSchema.omit({ creator: true })),
         response: {
           201: zodToJsonSchema(selectCoinSchema),
@@ -108,8 +110,11 @@ export default function registerCoinRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(getCoinsRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["coins"],
         response: {
-          200: zodToJsonSchema(array(selectCoinSchema)),
+          200: zodToJsonSchema(array(selectCoinSchema), {
+            definitions: { selectCoinSchema },
+          }),
         },
       },
     })
@@ -119,6 +124,9 @@ export default function registerCoinRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(updateCoinRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["coins"],
+        description:
+          "This resource is to update some information about a single coin.",
         params: zodToJsonSchema(selectCoinSchema.pick({ id: true })),
         response: {
           200: zodToJsonSchema(selectCoinSchema),
@@ -131,6 +139,8 @@ export default function registerCoinRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(deleteCoinRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["coins"],
+        description: "This resource is to delete a single coin.",
         params: zodToJsonSchema(selectCoinSchema.pick({ id: true })),
         response: {
           200: zodToJsonSchema(selectCoinSchema),

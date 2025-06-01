@@ -52,6 +52,8 @@ export default function registerApiKeyRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(createApiKeyRoute),
       preHandler: passport.authenticate("jwt"),
       schema: {
+        tags: ["apiKeys"],
+        description: "This resource is to create a unique api key.",
         response: {
           200: zodToJsonSchema(selectApiKeySchema),
         },
@@ -63,17 +65,24 @@ export default function registerApiKeyRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(getApiKeysRoute),
       preHandler: passport.authenticate("jwt"),
       schema: {
+        tags: ["apiKeys"],
+        description:
+          "This resource is to retrieve information about all api keys.",
         response: {
-          200: zodToJsonSchema(array(selectApiKeySchema)),
+          200: zodToJsonSchema(array(selectApiKeySchema), {
+            definitions: { selectApiKeySchema },
+          }),
         },
       },
     })
     .route({
       method: "DELETE",
-      url: "/:id//",
+      url: "/:id/",
       handler: RequestError.handler(deleteApiKeyRoute),
       preHandler: passport.authenticate("jwt"),
       schema: {
+        tags: ["apiKeys"],
+        description: "This resource is to delete a single api key.",
         params: zodToJsonSchema(selectApiKeySchema.pick({ id: true })),
         response: {
           200: zodToJsonSchema(selectApiKeySchema),

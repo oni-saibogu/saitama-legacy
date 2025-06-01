@@ -49,5 +49,5 @@ export const getWallet = async (
   maxAge?: number
 ) => {
   const index = await getWalletIndex(chain, 1, { maxIndex, maxAge });
-  return generateAddressFromIndex(mnemonic, index, chain);
+  return [index, await generateAddressFromIndex(mnemonic, index, chain)] as const;
 };

@@ -107,6 +107,8 @@ export default function registerAppRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(createAppRoute),
       preHandler: passport.authenticate("jwt"),
       schema: {
+        tag: ["apps", "workspaces"],
+        description: "This resource is to create a unique app.",
         body: zodToJsonSchema(insertAppSchema.omit({ user: true })),
         response: {
           201: zodToJsonSchema(insertAppSchema),
@@ -119,6 +121,8 @@ export default function registerAppRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(getAppsRoute),
       preHandler: passport.authenticate("jwt"),
       schema: {
+        tag: ["apps", "workspaces"],
+        description: "This resource is to retrieve information about all apps.",
         response: {
           200: zodToJsonSchema(array(selectAppSchema.omit({ user: true }))),
         },
@@ -130,6 +134,9 @@ export default function registerAppRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(getAppRoute),
       preHandler: passport.authenticate("jwt"),
       schema: {
+        tag: ["apps", "workspaces"],
+        description:
+          "This resource is to retrieve information about a single app.",
         params: zodToJsonSchema(selectAppSchema.pick({ id: true })),
         response: {
           200: zodToJsonSchema(selectAppSchema.omit({ user: true })),
@@ -142,6 +149,9 @@ export default function registerAppRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(updateAppRoute),
       preHandler: passport.authenticate("jwt"),
       schema: {
+        tag: ["apps", "workspaces"],
+        description:
+          "This resource is to update some information about a single app.",
         params: zodToJsonSchema(selectAppSchema.pick({ id: true })),
         body: zodToJsonSchema(insertAppSchema.omit({ user: true }).partial()),
         response: {
@@ -155,6 +165,8 @@ export default function registerAppRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(deleteAppRoute),
       preHandler: passport.authenticate("jwt"),
       schema: {
+        tag: ["apps", "workspaces"],
+        description: "This resource is to delete a single app.",
         params: zodToJsonSchema(selectAppSchema.pick({ id: true })),
         response: {
           200: zodToJsonSchema(selectAppSchema),

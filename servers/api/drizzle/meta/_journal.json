@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1745482577064,
-      "tag": "0000_glorious_excalibur",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1745485272447,
-      "tag": "0001_same_mockingbird",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1748037608110,
-      "tag": "0002_thin_valkyrie",
+      "when": 1748781747596,
+      "tag": "0000_brainy_spirit",
       "breakpoints": true
     }
   ]

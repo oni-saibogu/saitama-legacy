@@ -1,4 +1,4 @@
-import { object, string } from "zod";
+import { discriminatedUnion, literal, object, string } from "zod";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 import {
@@ -18,12 +18,16 @@ import { bigInt } from "./zod-custom-type";
 export const insertUserSchema = createInsertSchema(users, {
   email: (column) => column.email(),
 }).omit({ id: true, createdAt: true, updatedAt: true });
-export const selectUserSchema = createSelectSchema(users);
+export const selectUserSchema = createSelectSchema(users, {
+  email: (column) => column.email(),
+});
 
 export const insertAppSchema = createInsertSchema(apps, {
   logo: (column) => column.url(),
 }).omit({ id: true, createdAt: true, updatedAt: true });
-export const selectAppSchema = createSelectSchema(apps);
+export const selectAppSchema = createSelectSchema(apps, {
+  logo: (column) => column.url(),
+});
 
 export const selectApiKeySchema = createSelectSchema(apiKeys);
 export const insertApiKeySchema = createInsertSchema(apiKeys).omit({
@@ -33,7 +37,15 @@ export const insertApiKeySchema = createInsertSchema(apiKeys).omit({
   createdAt: true,
 });
 
-export const selectWalletSchema = createSelectSchema(wallets);
+export const selectWalletSchema1 = createSelectSchema(wallets);
+export const selectWalletSchema = discriminatedUnion("generated", [
+  createSelectSchema(wallets)
+    .omit({ metadata: true })
+    .extend({ generated: literal(true) }),
+  createSelectSchema(wallets)
+    .omit({ address: true })
+    .extend({ generated: literal(false) }),
+]);
 export const insertWalletSchema = createInsertSchema(wallets).omit({
   id: true,
   createdAt: true,
@@ -42,7 +54,9 @@ export const insertWalletSchema = createInsertSchema(wallets).omit({
 export const insertWebhookSchema = createInsertSchema(webhooks, {
   url: (column) => column.url(),
 }).omit({ id: true, createdAt: true });
-export const selectWebhookSchema = createSelectSchema(webhooks);
+export const selectWebhookSchema = createSelectSchema(webhooks, {
+  url: (column) => column.url(),
+});
 
 export const selectPaymentSchema = createSelectSchema(payments, {
   amount: bigInt(),
@@ -71,7 +85,9 @@ export const insertPaymentLinkSchema = createInsertSchema(paymentLinks, {
   updatedAt: true,
 });
 
-export const selectCustomerSchema = createSelectSchema(customers);
+export const selectCustomerSchema = createSelectSchema(customers, {
+  email: (column) => column.email(),
+});
 export const insertCustomerSchema = createInsertSchema(customers, {
   email: (column) => column.email(),
 }).omit({
@@ -80,15 +96,23 @@ export const insertCustomerSchema = createInsertSchema(customers, {
   updatedAt: true,
 });
 
-export const selectCoinSchema = createSelectSchema(coins);
-export const insertCoinSchema = createInsertSchema(coins).omit({
+export const selectCoinSchema = createSelectSchema(coins, {
+  logo: (column) => column.url(),
+});
+export const insertCoinSchema = createInsertSchema(coins, {
+  logo: (column) => column.url(),
+}).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const selectNetworkSchema = createSelectSchema(networks);
-export const insertNetworkSchema = createInsertSchema(networks).omit({
+export const selectNetworkSchema = createSelectSchema(networks, {
+  logo: (column) => column.url(),
+});
+export const insertNetworkSchema = createInsertSchema(networks, {
+  logo: (column) => column.url(),
+}).omit({
   id: true,
   createdAt: true,
   updatedAt: true,

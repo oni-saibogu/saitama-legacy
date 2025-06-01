@@ -113,6 +113,8 @@ export default function registerCustomerRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(createCustomerRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["customers"],
+        description: "This resource is to create a unique customer.",
         body: zodToJsonSchema(insertCustomerSchema.omit({ app: true })),
         response: {
           201: zodToJsonSchema(selectCustomerSchema),
@@ -125,6 +127,9 @@ export default function registerCustomerRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(getCustomersRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["customers"],
+        description:
+          "This resource is to retrieve information about all customers.",
         response: {
           200: zodToJsonSchema(array(selectCustomerSchema)),
         },
@@ -136,6 +141,9 @@ export default function registerCustomerRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(getCustomerRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["customers"],
+        description:
+          "This resource is to retrieve information about a single customer.",
         response: {
           200: zodToJsonSchema(selectCustomerSchema),
         },
@@ -147,6 +155,9 @@ export default function registerCustomerRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(updateCustomerRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["customers"],
+        description:
+          "This resource is to update some information about a single customer.",
         params: zodToJsonSchema(selectCustomerSchema.pick({ id: true })),
         body: zodToJsonSchema(insertCustomerSchema.partial()),
         response: {
@@ -160,6 +171,8 @@ export default function registerCustomerRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(deleteCustomerRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["customers"],
+        description: "This resource is to delete a single customer.",
         params: zodToJsonSchema(selectCustomerSchema.pick({ id: true })),
         response: {
           200: zodToJsonSchema(selectCustomerSchema),

@@ -123,6 +123,8 @@ export default function registerPaymentLinkRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(createPaymentLinkRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["paymentLinks"],
+        description: "This resource is to create a unique paymentLink.",
         body: zodToJsonSchema(insertPaymentLinkSchema.omit({ app: true })),
         response: {
           201: zodToJsonSchema(selectPaymentLinkSchema),
@@ -135,6 +137,9 @@ export default function registerPaymentLinkRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(getPaymentLinksRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["paymentLinks"],
+        description:
+          "This resource is to retrieve information about all paymentLinks.",
         response: {
           200: zodToJsonSchema(
             array(
@@ -155,6 +160,9 @@ export default function registerPaymentLinkRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(getPaymentLinkRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["paymentLinks"],
+        description:
+          "This resource is to retrieve information about a single paymentLink.",
         params: zodToJsonSchema(selectPaymentLinkSchema.pick({ id: true })),
         response: {
           200: zodToJsonSchema(
@@ -174,6 +182,9 @@ export default function registerPaymentLinkRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(updatePaymentLinkRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["paymentLinks"],
+        description:
+          "This resource is to update some information about a single paymentLink.",
         params: zodToJsonSchema(selectPaymentLinkSchema.pick({ id: true })),
         response: {
           200: zodToJsonSchema(selectPaymentLinkSchema),
@@ -186,6 +197,8 @@ export default function registerPaymentLinkRoutes(fastify: FastifyInstance) {
       handler: RequestError.handler(deletePaymentLinkRoute),
       preHandler: passport.authenticate(["jwt", "apiKey"]),
       schema: {
+        tags: ["paymentLinks"],
+        description: "This resource is to delete a single paymentLink.",
         params: zodToJsonSchema(selectPaymentLinkSchema.pick({ id: true })),
         response: {
           200: zodToJsonSchema(selectPaymentLinkSchema),

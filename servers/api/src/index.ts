@@ -1,10 +1,11 @@
-import type { z } from "zod";
 import { readFileSync } from "fs";
+import { type z, string } from "zod";
 import fastifyCors from "@fastify/cors";
 import fastifySwagger from "@fastify/swagger";
 import fastifyPassport from "@fastify/passport";
 import Fastify, { type FastifyRequest } from "fastify";
 import fastifySecureSession from "@fastify/secure-session";
+import fastifyApiReference from "@scalar/fastify-api-reference";
 import { ExtractJwt, Strategy as JWTStrategy } from "passport-jwt";
 
 import { credential } from "firebase-admin";
@@ -66,8 +67,20 @@ function main() {
             type: "http",
             scheme: "Bearer",
           },
+          jwt: {
+            type: "http",
+            scheme: "Bearer",
+          },
         },
       },
+    },
+  });
+
+  fastify.register(fastifyApiReference, {
+    routePrefix: "/docs/",
+    configuration: {
+      title: "",
+      theme: "laserwave",
     },
   });
 
@@ -88,7 +101,8 @@ function main() {
         if (payload.id) {
           const user = await getUserById(db, payload.id).then((user) => user);
           if (user) {
-            if (appId) app = await getAppByUserAndId(db, user.id, appId);
+            if (appId && string().safeParse(appId).success)
+              app = await getAppByUserAndId(db, user.id, appId);
             return done(null, { ...user, app });
           }
 
