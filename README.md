@@ -12,13 +12,13 @@ Saitama lets you accept payments by generating temporary, user-friendly payment 
 
 ### 🎯 Features 
 
-[x] No wallet connection required.
-[x] Open source and self hostable.
-[x] Works primarily with Solana, Ethereum and add plugin support for EVM chains (e.g Polygon, BSC).
-[x] Supports SOL, ETH, USDC, USDT, or custom SPL-Tokens and ERC-20 tokens. 
-[x] Secure metadata based payment validation.
-[x] Optional webhook callbacks.
-[x] Developer friendly API.
+- [x] No wallet connection required.
+- [x] Open source and self hostable.
+- [x] Works primarily with Solana, Ethereum and add plugin support for EVM chains (e.g Polygon, BSC).
+- [x] Supports SOL, ETH, USDC, USDT, or custom SPL-Tokens and ERC-20 tokens. 
+- [x] Secure metadata based payment validation.
+- [x] Optional webhook callbacks.
+- [x] Developer friendly API.
 
 ### 🔧 Installation 
 
@@ -46,7 +46,7 @@ APP_DATABASE_URL='postgres://localhost/saitama'
 APP_FIREBASE_SERVICE_ACCOUNT=''
 ```
 
->generate a APP_SECRET_KEY using `openssl rand -hex 32`
+>To generate a APP_SECRET_KEY use `openssl rand -hex 32`
 
 ii. cd to web/payment path, create a .env file and fill in your secrets
 ```bash
@@ -67,7 +67,11 @@ bun dev
 # visit http://localhost:3000 to access payment app
 ```
 
-[Postman](https://.postman.co/workspace/dev~9927637c-4820-4663-8761-3d6ba542bf3b/collection/18547775-28a5341c-fe5a-450c-b77e-c993e36cafc1?action=share&creator=18547775) 
+
+[![Postman Logo](https://www.vectorlogo.zone/logos/getpostman/getpostman-ar21~bgwhite.svg)](https://.postman.co/workspace/dev~9927637c-4820-4663-8761-3d6ba542bf3b/collection/18547775-28a5341c-fe5a-450c-b77e-c993e36cafc1?action=share&creator=18547775)
+
+
+
 
 
 ### 🧑🏽‍💻 Contributing
