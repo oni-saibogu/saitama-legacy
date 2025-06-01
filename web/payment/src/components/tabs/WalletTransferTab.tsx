@@ -1,9 +1,9 @@
+import clsx from "clsx";
 import moment from "moment";
-import { useMemo } from "react";
 import Decimal from "decimal.js";
-import { BN } from "@coral-xyz/anchor";
+import { useMemo, useState } from "react";
 import { TabPanel } from "@headlessui/react";
-import { MdContentCopy } from "react-icons/md";
+import { MdContentCopy, MdOutlineWarning } from "react-icons/md";
 
 import Timer from "../Timer";
 import QRCode from "../QRCode";
@@ -22,14 +22,13 @@ export default function WalletTransferTab({
   const As = as;
   const { payment } = useAppSelector((state) => state.global);
 
+  const [expired, setIsExpired] = useState(false);
   const coin = useMemo(() => getObjectKeyOrThrow(payment, "coin"), [payment]);
   const network = useMemo(() => getObjectKeyOrThrow(coin, "network"), [coin]);
   const wallet = useMemo(
     () => getObjectKeyOrThrow(payment, "wallet"),
     [payment]
   );
-
-  console.log(payment)
 
   return (
     payment && (
@@ -55,8 +54,9 @@ export default function WalletTransferTab({
             </div>
             <div>
               <Timer
-                epoch={moment(payment.createdAt)}
+                onExpired={setIsExpired}
                 maxTimeInMinutes={9}
+                epoch={moment(payment.createdAt).utc()}
               />
             </div>
           </div>
@@ -95,9 +95,25 @@ export default function WalletTransferTab({
             </div>
           </div>
         </div>
-        <button className="flex items-center justify-center space-x-4 bg-violet-700 text-white p-2.5 rounded-md">
-          <span>Waiting for payment</span>
-          <Loading className="size-5 border-white" />
+        <button
+          className={clsx(
+            "flex items-center justify-center  p-2.5 rounded-md",
+            expired
+              ? "bg-violet-700/50 text-white space-x-2"
+              : "bg-violet-700 text-white space-x-4"
+          )}
+        >
+          {expired ? (
+            <>
+              <MdOutlineWarning className="text-base" />
+              <span>Link Expired</span>
+            </>
+          ) : (
+            <>
+              <span>Waiting for payment</span>
+              <Loading className="size-5 border-white" />
+            </>
+          )}
         </button>
       </As>
     )

@@ -9,10 +9,17 @@ import type {
   selectPaymentSchema,
 } from "../../db/zod";
 
-export const createPayment = (
+export const createPayment = async (
   db: Database,
   value: z.infer<typeof insertPaymentSchema>
-) => db.insert(payments).values(value).returning().execute();
+) => {
+  const [payment] = await db
+    .insert(payments)
+    .values(value)
+    .returning({ id: payments.id })
+    .execute();
+  if (payment) return getPaymentById(db, payment.id);
+};
 
 export const getPaymentsByAppWhere = (
   db: Database,
@@ -42,6 +49,12 @@ export const getPaymentsByAppWhere = (
           name: true,
           ticker: true,
           decimals: true,
+        },
+      },
+      customer: {
+        columns: {
+          id: true,
+          email: true,
         },
       },
     },
@@ -122,6 +135,60 @@ export const getPaymentByAppAndId = (
     .execute();
 };
 
+export const getPaymentById = (
+  db: Database,
+  id: z.infer<typeof selectPaymentSchema>["id"]
+) => {
+  return db.query.payments
+    .findFirst({
+      with: {
+        paymentLink: true,
+        wallet: {
+          columns: {
+            id: true,
+            address: true,
+          },
+        },
+        coin: {
+          with: {
+            network: {
+              columns: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+          columns: {
+            id: true,
+            name: true,
+            ticker: true,
+            decimals: true,
+          },
+        },
+        customer: {
+          columns: {
+            id: true,
+            email: true,
+          },
+        },
+      },
+      columns: {
+        id: true,
+        amount: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      where: and(
+        eq(payments.id, id),
+        inArray(
+          payments.paymentLink,
+          db.select({ id: paymentLinks.id }).from(paymentLinks)
+        )
+      ),
+    })
+    .execute();
+};
+
 export const updatePaymentByAppAndId = async (
   db: Database,
   app: z.infer<typeof selectAppSchema>["id"],
@@ -138,13 +205,16 @@ export const updatePaymentByAppAndId = async (
     )
     .execute();
 
-  if (payment)
-    return db
+  if (payment) {
+    await db
       .update(payments)
       .set(value)
       .where(eq(payments.id, payment.id))
       .returning()
       .execute();
+
+    return getPaymentById(db, payment.id);
+  }
 
   return null;
 };

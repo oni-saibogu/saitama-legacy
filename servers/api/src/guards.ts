@@ -1,6 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { RequestError } from "./error";
+
 import { format } from "./core";
+import { RequestError } from "./error";
 
 export const withUserGuard = <
   T extends FastifyRequest = FastifyRequest,
@@ -13,7 +14,6 @@ export const withUserGuard = <
   skipAppCheck: boolean = false
 ) => {
   return (request: T, _reply: U): ReturnType<Fn> => {
-    console.log(request.user)
     if (request.user && (skipAppCheck ? true : request.user.app))
       return fn(request.user) as ReturnType<Fn>;
     throw new RequestError(

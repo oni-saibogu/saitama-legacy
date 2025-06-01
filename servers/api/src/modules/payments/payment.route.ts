@@ -8,6 +8,7 @@ import { format } from "../../core";
 import { db } from "../../instances";
 import { RequestError } from "../../error";
 import { withUserGuard } from "../../guards";
+import { string } from "../../db/zod-custom-type";
 import {
   createPayment,
   getPaymentByAppAndId,
@@ -28,12 +29,14 @@ const createPaymentRoute = (
   request: FastifyRequest<{ Body: z.infer<typeof insertPaymentSchema> }>
 ) =>
   insertPaymentSchema.parseAsync(request.body).then(async (body) => {
-    const [payment] = await createPayment(db, body);
-    return payment;
+    const payment = await createPayment(db, body);
+    return getSharedSchema.parseAsync(payment);
   });
 
-const getPaymentsRoute = withUserGuard((user) =>
-  getPaymentsByAppWhere(db, user.app.id)
+const getPaymentsRoute = withUserGuard(async (user) =>
+  array(getSharedSchema).parseAsync(
+    await getPaymentsByAppWhere(db, user.app.id)
+  )
 );
 
 const getPaymentRoute = (
@@ -47,7 +50,7 @@ const getPaymentRoute = (
       .parseAsync(request.params)
       .then(async ({ id }) => {
         const payment = await getPaymentByAppAndId(db, user.app.id, id);
-        if (payment) return payment;
+        if (payment) return getSharedSchema.parseAsync(payment);
 
         throw new RequestError(404, format("payment with id=% not found", id));
       })
@@ -76,16 +79,13 @@ const updatePaymentRoute = (
                 "if changing coin or wallet, both coin and wallet is required."
               )
             );
-            const payments = await updatePaymentByAppAndId(
+            const payment = await updatePaymentByAppAndId(
               db,
               user.app!.id,
               id,
               body
             );
-            if (payments) {
-              const [payment] = payments;
-              if (payment) return payment;
-            }
+            if (payment) return getSharedSchema.parseAsync(payment);
 
             throw new RequestError(
               404,
@@ -100,10 +100,10 @@ const getSharedSchema = selectPaymentSchema
     id: true,
     createdAt: true,
     updatedAt: true,
-    amount: true,
   })
   .and(
     object({
+      amount: string(),
       paymentLink: selectPaymentLinkSchema,
       wallet: selectWalletSchema1.pick({
         id: true,
@@ -143,7 +143,7 @@ export default function registerPaymentkoutes(fastify: FastifyInstance) {
         description: "This resource is to create a unique payment.",
         body: zodToJsonSchema(insertPaymentSchema),
         response: {
-          201: zodToJsonSchema(selectPaymentSchema),
+          201: zodToJsonSchema(getSharedSchema),
         },
       },
     })
@@ -189,7 +189,7 @@ export default function registerPaymentkoutes(fastify: FastifyInstance) {
           "This resource is to update some information about a single payment.",
         params: zodToJsonSchema(selectPaymentSchema.pick({ id: true })),
         response: {
-          201: zodToJsonSchema(selectPaymentSchema),
+          201: zodToJsonSchema(getSharedSchema),
         },
       },
     });

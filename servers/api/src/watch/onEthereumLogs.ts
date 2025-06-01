@@ -2,7 +2,7 @@ import type { z } from "zod";
 import { desc, eq, and, getTableColumns } from "drizzle-orm";
 
 import { format } from "../core";
-import { db, viem } from "../instances";
+import { db, fastify, viem } from "../instances";
 import type { insertPaymentSchema } from "../db/zod";
 import { apps, coins, paymentLinks, payments, wallets } from "../db/schema";
 
@@ -90,12 +90,14 @@ const unsubscribeERC20 = viem.watchEvent({
 
               data.signature = log.transactionHash;
 
-              return db
+              const [updatedPayment] = await db
                 .update(payments)
                 .set(data)
                 .where(eq(payments.id, payment.id))
                 .returning()
                 .execute();
+
+              return fastify.io.to(payment.id).emit("payments", updatedPayment);
             }
 
             console.error(
@@ -166,12 +168,14 @@ const unsubscribeNative = viem.watchBlocks({
 
               data.signature = transaction.hash;
 
-              return db
+              const [updatedPayment] = await db
                 .update(payments)
                 .set(data)
                 .where(eq(payments.id, payment.id))
                 .returning()
                 .execute();
+
+              return fastify.io.to(payment.id).emit("payments", updatedPayment);
             }
 
             console.error(

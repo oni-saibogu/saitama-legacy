@@ -1,7 +1,7 @@
-import { redis } from "bun";
 import moment from "moment";
 
 import { format } from "../utils";
+import { redis } from "../../instances";
 import type { chains } from "../../config";
 import { generateAddressFromIndex } from "./generate";
 
@@ -49,5 +49,8 @@ export const getWallet = async (
   maxAge?: number
 ) => {
   const index = await getWalletIndex(chain, 1, { maxIndex, maxAge });
-  return [index, await generateAddressFromIndex(mnemonic, index, chain)] as const;
+  return [
+    index,
+    await generateAddressFromIndex(mnemonic, index, chain),
+  ] as const;
 };

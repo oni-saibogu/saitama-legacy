@@ -4,7 +4,7 @@ import { and, desc, eq, or } from "drizzle-orm";
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 import { format } from "../core";
-import { db, solana } from "../instances";
+import { db, fastify, solana } from "../instances";
 import { apps, coins, paymentLinks, payments, wallets } from "../db/schema";
 import type { insertPaymentSchema, selectWalletSchema } from "../db/zod";
 import type {
@@ -169,13 +169,16 @@ const onSolanaLogs = async (
             }
           }
 
-          if (payment)
-            return db
+          if (payment) {
+            const [updatedPayment] = await db
               .update(payments)
               .set(data)
               .where(eq(payments.id, payment.id))
               .returning()
               .execute();
+
+            return fastify.io.to(payment.id).emit("payments", updatedPayment);
+          }
 
           console.error(
             "[transaction.payment.notFound] reason=payment can't be found. signature=%",

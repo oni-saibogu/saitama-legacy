@@ -3,51 +3,43 @@ import { type z, string } from "zod";
 import fastifyCors from "@fastify/cors";
 import fastifySwagger from "@fastify/swagger";
 import fastifyPassport from "@fastify/passport";
-import Fastify, { type FastifyRequest } from "fastify";
+import fastifySocketIO from "fastify-socket.io";
 import fastifySecureSession from "@fastify/secure-session";
 import fastifyApiReference from "@scalar/fastify-api-reference";
 import { ExtractJwt, Strategy as JWTStrategy } from "passport-jwt";
+import { type FastifyInstance, type FastifyRequest } from "fastify";
 
 import { credential } from "firebase-admin";
 import { initializeApp, type ServiceAccount } from "firebase-admin/app";
 
 import { getEnv } from "./env";
 import { format } from "./core";
-import { db } from "./instances";
+import type { Database } from "./db";
 import { RequestError } from "./error";
 import registerRoutes from "./modules";
+import { db, fastify } from "./instances";
 import type { selectUserSchema } from "./db/zod";
 import { getUserById } from "./modules/users/users.controller";
 import { getAppByUserAndId } from "./modules/apps/app.controller";
 import { ApiKeyStrategy, FirebaseStrategy } from "./modules/auth/auth.strategy";
 
-function main() {
+async function main(fastify: FastifyInstance, db: Database) {
   initializeApp({
     credential: credential.cert(getEnv<ServiceAccount>("SERVICE_ACCOUNT")!),
   });
 
-  const fastify = Fastify({
-    logger: true,
-    ignoreDuplicateSlashes: true,
-    ignoreTrailingSlash: true,
-    ajv: {
-      customOptions: {
-        strict: true,
-        allowUnionTypes: true,
-      },
-    },
-  });
-
-  fastify.register(fastifySecureSession, {
+  /** @ts-ignore */
+  await fastify.register(fastifySocketIO, { cors: { origin: [/localhost/] } });
+  await fastify.register(fastifySecureSession, {
     key: readFileSync("secret-key"),
   });
-  fastify.register(fastifyCors, {
+  await fastify.register(fastifyCors, {
     origin: [/localhost/],
   });
 
-  fastify.register(fastifyPassport.initialize());
-  fastify.register(fastifyPassport.secureSession());
-  fastify.register(fastifySwagger, {
+  await fastify.register(fastifyPassport.initialize());
+  await fastify.register(fastifyPassport.secureSession());
+  await fastify.register(fastifySwagger, {
     openapi: {
       openapi: "3.0.0",
       info: {
@@ -76,7 +68,7 @@ function main() {
     },
   });
 
-  fastify.register(fastifyApiReference, {
+  await fastify.register(fastifyApiReference, {
     routePrefix: "/docs/",
     configuration: {
       title: "",
@@ -130,8 +122,9 @@ function main() {
     throw new RequestError(404, format("user with id=% not found", payload.id));
   });
 
-  registerRoutes(fastify);
+  await registerRoutes(fastify);
 
+  await fastify.ready();
   fastify.listen({
     host: getEnv<string>("HOST")!,
     port: getEnv("PORT", Number)!,
@@ -141,4 +134,4 @@ function main() {
   process.on("SIGTERM", () => fastify.close());
 }
 
-main();
+main(fastify, db);

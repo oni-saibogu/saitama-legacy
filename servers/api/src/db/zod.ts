@@ -62,8 +62,8 @@ export const selectPaymentSchema = createSelectSchema(payments, {
   amount: bigInt(),
 });
 export const insertPaymentSchema = createInsertSchema(payments, {
-  metadata: object({}),
   amount: bigInt(),
+  metadata: object({}).optional().nullish(),
 }).omit({
   id: true,
   createdAt: true,

@@ -1,3 +1,4 @@
+import moment from "moment";
 import crypto from "crypto";
 import {
   bigint,
@@ -35,6 +36,10 @@ export const payments = pgTable("payments", {
     .default("pending")
     .notNull(),
   metadata: json().$type<Record<string, string> | null>().default(null),
-  createdAt: timestamp().defaultNow().notNull(),
-  updatedAt: timestamp().defaultNow().notNull(),
+  createdAt: timestamp()
+    .$defaultFn(() => moment().utc().toDate())
+    .notNull(),
+  updatedAt: timestamp()
+    .$defaultFn(() => moment().utc().toDate())
+    .notNull(),
 });

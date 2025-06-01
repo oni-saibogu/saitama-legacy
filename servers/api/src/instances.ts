@@ -1,3 +1,5 @@
+import { createClient } from "redis";
+import Fastify from "fastify";
 import { mainnet } from "viem/chains";
 import { web3 } from "@coral-xyz/anchor";
 import { createPublicClient, http } from "viem";
@@ -22,3 +24,22 @@ export const viem = createPublicClient({
 export const tronWeb = new TronWeb({
   fullHost: "https://api.trongrid.io",
 });
+
+export const fastify = Fastify({
+  logger: true,
+  ignoreDuplicateSlashes: true,
+  ignoreTrailingSlash: true,
+  ajv: {
+    customOptions: {
+      strict: true,
+      allowUnionTypes: true,
+    },
+  },
+});
+
+export const redis =
+  typeof Bun === "undefined"
+    ? createClient({
+        url: getEnv<string>("REDIS_URL"),
+      })
+    : new Bun.RedisClient(getEnv<string>("REDIS_URL"));

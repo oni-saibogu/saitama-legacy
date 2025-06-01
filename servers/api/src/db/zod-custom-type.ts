@@ -1,4 +1,4 @@
-import { string } from "zod";
+import { custom } from "zod";
 
 export const isBigInt = (...value: Parameters<typeof BigInt>) => {
   try {
@@ -10,8 +10,15 @@ export const isBigInt = (...value: Parameters<typeof BigInt>) => {
 };
 
 export const bigInt = () =>
-  string()
+  custom<string>()
     .refine((value) => isBigInt(value), {
       message: "must be a valid bigint string",
     })
     .transform((value) => BigInt(value));
+
+export const string = () =>
+  custom<bigint>()
+    .refine((value) => isBigInt(value), {
+      message: "must be a valid bigint string",
+    })
+    .transform((value) => value.toString());

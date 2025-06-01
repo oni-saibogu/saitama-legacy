@@ -1,5 +1,4 @@
 import type { XiorInstance } from "xior";
-import type { LimitOffsetPagination } from "./models/paginate.model";
 
 export default abstract class ApiImpl {
   protected abstract path: string;
