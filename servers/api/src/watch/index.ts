@@ -1,2 +1,0 @@
-import "./onSolanaLogs";
-import "./onEthereumLogs";

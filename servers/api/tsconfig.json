@@ -1,8 +1,0 @@
-{
-  "extends": "@saitamafun/tsconfig/server",
-  "compilerOptions": {
-    "moduleResolution": "bundler",
-    "module": "esnext",
-    "target": "es2020"
-  }
-}
