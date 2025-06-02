@@ -11,6 +11,17 @@
         "typescript": "latest",
       },
     },
+    "packages/internal": {
+      "name": "@saitamafun/internal",
+      "version": "0.0.0",
+      "dependencies": {
+        "@saitamafun/tsconfig": "*",
+        "xior": "^0.5.3",
+      },
+      "devDependencies": {
+        "typescript": "latest",
+      },
+    },
     "packages/sdk": {
       "name": "@saitamafun/sdk",
       "version": "0.0.0",
@@ -123,6 +134,7 @@
         "@coral-xyz/anchor": "^0.31.0",
         "@headlessui/react": "^2.2.1",
         "@reduxjs/toolkit": "^2.7.0",
+        "@saitamafun/internal": "*",
         "@saitamafun/sdk": "*",
         "@solana/wallet-adapter-base": "^0.9.24",
         "@solana/wallet-adapter-react": "^0.15.36",
@@ -914,6 +926,8 @@
     "@safe-global/safe-gateway-typescript-sdk": ["@safe-global/safe-gateway-typescript-sdk@3.22.9", "", {}, "sha512-7ojVK/crhOaGowEO8uYWaopZzcr5rR76emgllGIfjCLR70aY4PbASpi9Pbs+7jIRzPDBBkM0RBo+zYx5UduX8Q=="],
 
     "@saitamafun/api": ["@saitamafun/api@workspace:servers/api"],
+
+    "@saitamafun/internal": ["@saitamafun/internal@workspace:packages/internal"],
 
     "@saitamafun/sdk": ["@saitamafun/sdk@workspace:packages/sdk"],
 
@@ -3810,6 +3824,8 @@
     "@reown/appkit-wallet/zod": ["zod@3.22.4", "", {}, "sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg=="],
 
     "@safe-global/safe-apps-sdk/viem": ["viem@2.26.3", "", { "dependencies": { "@noble/curves": "1.8.1", "@noble/hashes": "1.7.1", "@scure/bip32": "1.6.2", "@scure/bip39": "1.5.4", "abitype": "1.0.8", "isows": "1.0.6", "ox": "0.6.9", "ws": "8.18.1" }, "peerDependencies": { "typescript": ">=5.0.4" }, "optionalPeers": ["typescript"] }, "sha512-rGIIdDsxbs101C0gorWkuPqtMfRy2+lmO8S25fkzVe1KPQw0CQ8u6JMFHrLwdJS9Lr9xwpgmPh6LfvpOjpo3xQ=="],
+
+    "@saitamafun/internal/xior": ["xior@0.5.5", "", { "dependencies": { "tiny-lru": "^11.2.5", "ts-deepmerge": "^7.0.0" } }, "sha512-tMJUiuFgfww5SHi8IhiEFoYVNA3scUqZAPUuc2dJB0yYorDM+PYR7Bqcoz07g8pa55xPuJwIDPLX0SDRhZscmg=="],
 
     "@saitamafun/sdk/xior": ["xior@0.5.5", "", { "dependencies": { "tiny-lru": "^11.2.5", "ts-deepmerge": "^7.0.0" } }, "sha512-tMJUiuFgfww5SHi8IhiEFoYVNA3scUqZAPUuc2dJB0yYorDM+PYR7Bqcoz07g8pa55xPuJwIDPLX0SDRhZscmg=="],
 

@@ -1,4 +1,5 @@
-import { DexScreener, type Network } from "@saitamafun/sdk";
+import { type Network } from "@saitamafun/sdk";
+import { DexScreener } from "@saitamafun/internal";
 import { createContext, useContext } from "react";
 
 type DexScreenerContext = {

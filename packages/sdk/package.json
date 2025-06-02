@@ -9,7 +9,7 @@
     "@saitamafun:registry": "https://npm.pkg.github.com"
   },
   "scripts": {
-    "build": "tsup src/index.ts src/api/index.ts src/networks/index.ts src/dexscreener/index.ts --format cjs --minify --treeshake"
+    "build": "tsup src/index.ts src/api/index.ts src/networks/index.ts --format cjs --minify --treeshake"
   },
   "exports": {
     ".": {
@@ -26,11 +26,6 @@
       "types": "./src/networks/index.ts",
       "require": "./dist/networks/index.cjs",
       "default": "./src/networks/index.ts"
-    },
-    "./dexscreener": {
-      "types": "./src/dexscreener/index.ts",
-      "require": "./dist/dexscreener/index.cjs",
-      "default": "./src/dexscreener/index.ts"
     }
   },
   "type": "module",

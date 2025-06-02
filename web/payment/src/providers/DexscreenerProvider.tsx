@@ -1,5 +1,5 @@
-import { DexScreener } from "@saitamafun/sdk";
 import { useCallback, useMemo } from "react";
+import { DexScreener } from "@saitamafun/internal";
 
 import { DexScreenerContext } from "../contexts/DexScreenerContext";
 
