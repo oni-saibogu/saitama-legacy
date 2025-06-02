@@ -25,6 +25,7 @@ import {
   selectWalletSchema1,
 } from "../../db/zod";
 
+// instead of getting amount quote here do it on client
 const createPaymentRoute = (
   request: FastifyRequest<{ Body: z.infer<typeof insertPaymentSchema> }>
 ) =>

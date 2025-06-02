@@ -1,4 +1,5 @@
-import ApiImpl from "../api/impl";
+import { ApiImpl } from "@saitamafun/shared";
+
 import type { Search } from "./model/search.model";
 
 export class SearchApi extends ApiImpl {

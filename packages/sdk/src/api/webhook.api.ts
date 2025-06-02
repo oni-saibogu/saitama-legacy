@@ -1,4 +1,5 @@
-import { Crud } from "./impl";
+import { Crud } from "@saitamafun/shared";
+
 import type { Webhook } from "./models/webhook.model";
 
 export class WebhookApi extends Crud<Webhook> {

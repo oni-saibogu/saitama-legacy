@@ -1,10 +1,8 @@
-import { useEffect, useMemo } from "react";
 import { object, string } from "yup";
 import { useSearchParam } from "react-use";
 import { TabPanel } from "@headlessui/react";
 import { Formik, Form, Field } from "formik";
 import { MdOutlineEmail } from "react-icons/md";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 import Loading from "../Loading";
 import { globalActions } from "../../store/global";
@@ -17,24 +15,16 @@ type SignUpTabProps = {
   onNext: React.Dispatch<React.SetStateAction<void>>;
 };
 
-export default withSuspense(function SignUpTab({
+const SignUpTab = withSuspense(function SignUpTab({
   as = TabPanel,
   onNext,
 }: SignUpTabProps) {
   const As = as;
   const { api } = useAPI();
-  const router = useRouter();
-  const pathname = usePathname();
+
   const dispatch = useAppDispatch();
-  const searchParams = useSearchParams();
   const email = useSearchParam("email");
   const { customer } = useAppSelector((state) => state.global);
-  const hasPayment = useMemo(() => searchParams.has("payment"), [searchParams]);
-
-  // useEffect(() => {
-  //  dispatch(globalActions.setPayment(null))
-  //   router.push(pathname);
-  // }, [hasPayment]);
 
   return (
     <As className="flex-1 flex flex-col p-4">
@@ -98,3 +88,5 @@ export default withSuspense(function SignUpTab({
     </As>
   );
 });
+
+export default SignUpTab;

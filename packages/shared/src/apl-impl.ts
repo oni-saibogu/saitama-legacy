@@ -1,6 +1,6 @@
 import type { XiorInstance } from "xior";
 
-export default abstract class ApiImpl {
+export abstract class ApiImpl {
   protected abstract path: string;
 
   constructor(protected readonly xior: XiorInstance) {}
@@ -27,9 +27,7 @@ export abstract class Crud<T extends object> extends ApiImpl {
     return this.xior.get<T>(this.buildPath(id));
   };
 
-  readonly list = <TQuery = Partial<T>>(
-    query?: TQuery
-  ) => {
+  readonly list = <TQuery = Partial<T>>(query?: TQuery) => {
     return this.xior.get<T[]>(this.buildQueryPath(this.path, query!));
   };
 

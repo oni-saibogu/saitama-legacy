@@ -3,9 +3,9 @@ import { HDNodeWallet } from "ethers";
 import * as ecc from "tiny-secp256k1";
 import { mnemonicToSeed } from "bip39";
 import { Keypair } from "@solana/web3.js";
+import { format } from "@saitamafun/shared";
 import { derivePath } from "ed25519-hd-key";
 
-import { format } from "../utils";
 import { tronWeb } from "../../instances";
 
 export const generateAddressFromIndex = async (

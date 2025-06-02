@@ -1,14 +1,24 @@
 import "dotenv/config";
 
-import { format } from "./core/utils";
+import { format } from "@saitamafun/shared";
 
-type Env = "HOST"|"PORT"|"REDIS_URL"|"TRON_RPC_URL"|"SOLANA_RPC_URL"|"ETHEREUM_RPC_URL"|"DATABASE_URL"|"SECRET_KEY"|"MNEMONIC"|"SERVICE_ACCOUNT";
+type Env =
+  | "HOST"
+  | "PORT"
+  | "REDIS_URL"
+  | "TRON_RPC_URL"
+  | "SOLANA_RPC_URL"
+  | "ETHEREUM_RPC_URL"
+  | "DATABASE_URL"
+  | "SECRET_KEY"
+  | "MNEMONIC"
+  | "SERVICE_ACCOUNT";
 
 export const getEnv = <T extends object | number | string | null = string>(
   name: Env,
   refine?: <K extends unknown>(value: K) => T
 ) => {
-  const value = process.env["APP_" + name] || process.env[name] ;
+  const value = process.env["APP_" + name] || process.env[name];
   if (value)
     try {
       const parsed = JSON.parse(value) as T;

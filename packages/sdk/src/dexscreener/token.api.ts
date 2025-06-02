@@ -1,4 +1,5 @@
-import ApiImpl from "../api/impl";
+import { ApiImpl } from "@saitamafun/shared";
+
 import type { Pair } from "./model/pair.model";
 
 export class TokenApi extends ApiImpl {

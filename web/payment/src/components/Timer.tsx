@@ -46,7 +46,7 @@ export default forwardRef<
 
   useEffect(() => {
     if (isExpired) onExpired(isExpired);
-  }, [isExpired]);
+  }, [isExpired, onExpired]);
 
   return (
     <p className="font-mono text-sm">

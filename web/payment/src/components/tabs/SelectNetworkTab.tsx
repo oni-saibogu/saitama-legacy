@@ -9,7 +9,6 @@ import {
 } from "@headlessui/react";
 
 import { toSVGURL } from "../../utils/svgUtils";
-import { useAPI } from "../../contexts/APIContext";
 import { networksSelector } from "../../store/configs";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { globalActions, type GlobalState } from "../../store/global";
@@ -24,7 +23,6 @@ export default function SelectNetworkTab({
   onNext,
 }: SelectNetworkTabProps) {
   const As = as;
-  const { api } = useAPI();
   const dispatch = useAppDispatch();
   const { networkState } = useAppSelector((state) => state.configs);
   const networks = networksSelector.selectAll(networkState);

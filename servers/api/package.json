@@ -34,6 +34,8 @@
     "typescript": "latest"
   },
   "dependencies": {
+    "@saitamafun/sdk": "*",
+    "@saitamafun/shared": "*",
     "@coral-xyz/anchor": "^0.31.1",
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.0.1",

@@ -3,6 +3,7 @@ import Fastify from "fastify";
 import { mainnet } from "viem/chains";
 import { web3 } from "@coral-xyz/anchor";
 import { createPublicClient, http } from "viem";
+import { DexScreener } from "@saitamafun/sdk/dexscreener";
 
 import { getEnv } from "./env";
 import { createDB } from "./db";
@@ -43,3 +44,5 @@ export const redis =
         url: getEnv<string>("REDIS_URL"),
       })
     : new Bun.RedisClient(getEnv<string>("REDIS_URL"));
+
+export const dexscreener = new DexScreener();

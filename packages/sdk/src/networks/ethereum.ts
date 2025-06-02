@@ -3,7 +3,7 @@ import { erc20Abi } from "viem";
 import { getContract, parseEther, type Address, type WalletClient } from "viem";
 
 import { NetworkImpl } from "./impl";
-import type { Api, Payment } from "..";
+import type { Api, PurePayment } from "..";
 
 export class EthereumPayment extends NetworkImpl {
   constructor(
@@ -13,9 +13,9 @@ export class EthereumPayment extends NetworkImpl {
     super(api);
   }
 
-  readonly initializePayment = async (payment: Payment, isNative: boolean) => {
+  readonly initializePayment = async (payment: PurePayment) => {
     assert(
-      payment.wallet.chain === "ethereum",
+      payment.coin.name === "ethereum",
       "expected payment.wallet.chain to be ethereum"
     );
 
@@ -34,23 +34,26 @@ export class EthereumPayment extends NetworkImpl {
 
     let signature: string | undefined;
 
-    if (isNative) {
+    if (payment.coin.mint) {
+      const contract = getContract({
+        abi: erc20Abi,
+        // @ts-ignore
+        client: this.client,
+        address: payment.coin.mint as Address,
+      });
+
+      // @ts-ignore
+      signature = await contract.write.transfer([recipient, amount], {
+        account,
+        chain,
+      });
+    } else {
+      // @ts-ignore
       signature = await this.client.sendTransaction({
         to: recipient,
         value: amount,
         account: this.client.account!,
         chain: this.client.chain,
-      });
-    } else {
-      const contract = getContract({
-        abi: erc20Abi,
-        client: this.client,
-        address: payment.mint! as Address,
-      });
-
-      signature = await contract.write.transfer([recipient, amount], {
-        account,
-        chain,
       });
     }
 

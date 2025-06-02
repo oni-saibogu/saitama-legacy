@@ -1,6 +1,6 @@
 import moment from "moment";
+import { format } from "@saitamafun/shared";
 
-import { format } from "../utils";
 import { redis } from "../../instances";
 import type { chains } from "../../config";
 import { generateAddressFromIndex } from "./generate";

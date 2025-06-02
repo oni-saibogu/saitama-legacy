@@ -1,22 +1,25 @@
-import type { Coin } from "@saitamafun/sdk";
+import Decimal from "decimal.js";
+import { type Coin } from "@saitamafun/sdk";
 
-import { useCallback, useState } from "react";
 import { TabPanel } from "@headlessui/react";
+import { useCallback, useState } from "react";
 import { MdChevronRight } from "react-icons/md";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import { wrappedCoins } from "../../configs";
 import { toSVGURL } from "../../utils/svgUtils";
 import { useAPI } from "../../contexts/APIContext";
 import { globalActions } from "../../store/global";
 import withSuspense from "../../composables/withSuspense";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { useDexscreener } from "../../contexts/DexScreenerContext";
 
 type SelectCoinTabProps = {
   as?: React.ElementType;
   onNext: React.Dispatch<React.SetStateAction<void>>;
 };
 
-export default withSuspense(function SelectCoinTab({
+const SelectCoinTab = withSuspense(function SelectCoinTab({
   as = TabPanel,
   onNext,
 }: SelectCoinTabProps) {
@@ -25,6 +28,7 @@ export default withSuspense(function SelectCoinTab({
   const router = useRouter();
   const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
+  const { getMintPriceUSD } = useDexscreener();
   const [isSubmitting, setSubmitting] = useState(false);
   const { network, customer, paymentLink, payment } = useAppSelector(
     (state) => state.global
@@ -44,9 +48,21 @@ export default withSuspense(function SelectCoinTab({
             coin: coin.id,
           });
 
+        console.log(paymentLink);
+
+        const priceInUSD = await getMintPriceUSD(
+          network.name,
+          coin.mint ? coin.mint : wrappedCoins[network.name]
+        );
+        const amount = new Decimal(
+          parseFloat(paymentLink.price.amount) / priceInUSD
+        )
+          .mul(Math.pow(10, coin.decimals))
+          .toFixed(0);
+
         return api.payment
           .create({
-            amount: "10000",
+            amount,
             coin: coin.id,
             wallet: wallet.id,
             customer: customer.id,
@@ -63,7 +79,18 @@ export default withSuspense(function SelectCoinTab({
           });
       }
     },
-    [network, customer, api, paymentLink, dispatch, onNext]
+    [
+      network,
+      customer,
+      api,
+      paymentLink,
+      payment,
+      router,
+      searchParams,
+      dispatch,
+      onNext,
+      getMintPriceUSD,
+    ]
   );
 
   return (
@@ -90,3 +117,5 @@ export default withSuspense(function SelectCoinTab({
     </As>
   );
 });
+
+export default SelectCoinTab;

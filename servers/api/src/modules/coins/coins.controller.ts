@@ -17,6 +17,16 @@ export const createCoin = (
 export const getCoins = (db: Database, where?: SQL<unknown>) =>
   db.query.coins.findMany({ where }).execute();
 
+export const getCoinById = (
+  db: Database,
+  id: z.infer<typeof selectCoinSchema>["id"]
+) =>
+  db.query.coins
+    .findFirst({
+      where: eq(coins.id, id),
+    })
+    .execute();
+
 export const updateCoinByUserAndId = (
   db: Database,
   user: z.infer<typeof selectUserSchema>["id"],

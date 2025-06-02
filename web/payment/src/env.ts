@@ -6,7 +6,7 @@ type Env = "API_BASE_URL"|"APP_ID"|"API_KEY";
 
 export const getEnv = <T extends object | number | string | null = string>(
   name: Env,
-  refine?: <K extends unknown>(value: K) => T
+  refine?: <K>(value: K) => T
 ) => {
   const value = process.env["NEXT_" + name] || process.env["NEXT_PUBLIC_" + name] || process.env[name] ;
   if (value)

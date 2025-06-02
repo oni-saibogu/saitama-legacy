@@ -1,15 +1,11 @@
 import assert from "assert";
 import { createMemoInstruction } from "@solana/spl-memo";
 import { web3, type AnchorProvider } from "@coral-xyz/anchor";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { createAssociatedTokenAccountIdempotentInstruction } from "@solana/spl-token";
-import {
-  getAssociatedTokenAddressSync,
-  NATIVE_MINT,
-  NATIVE_MINT_2022,
-} from "@solana/spl-token";
 
 import { NetworkImpl } from "./impl";
-import type { Api, Payment } from "../../api";
+import type { Api, PurePayment } from "../api";
 
 export class SolanaPayment extends NetworkImpl {
   constructor(
@@ -22,13 +18,9 @@ export class SolanaPayment extends NetworkImpl {
     super(api);
   }
 
-  static isNative(mint: web3.PublicKey) {
-    return NATIVE_MINT.equals(mint) || NATIVE_MINT_2022.equals(mint);
-  }
-
-  readonly initializePayment = async (payment: Payment, isNative: boolean) => {
+  readonly initializePayment = async (payment: PurePayment) => {
     assert(
-      payment.wallet.chain === "solana",
+      payment.coin.name === "solana",
       "expected payment.wallet.chain to be solana"
     );
 
@@ -42,16 +34,8 @@ export class SolanaPayment extends NetworkImpl {
       createMemoInstruction(data, [sender]),
     ];
 
-    if (isNative) {
-      instructions.push(
-        web3.SystemProgram.transfer({
-          fromPubkey: sender,
-          toPubkey: recipient,
-          lamports: BigInt(payment.amount),
-        })
-      );
-    } else {
-      const mint = new web3.PublicKey(payment.mint!);
+    if (payment.coin.mint) {
+      const mint = new web3.PublicKey(payment.coin.mint);
 
       const senderAta = getAssociatedTokenAddressSync(mint, sender, true);
       const recipientAta = getAssociatedTokenAddressSync(mint, recipient, true);
@@ -63,6 +47,14 @@ export class SolanaPayment extends NetworkImpl {
           recipient,
           mint
         )
+      );
+    } else {
+      instructions.push(
+        web3.SystemProgram.transfer({
+          fromPubkey: sender,
+          toPubkey: recipient,
+          lamports: BigInt(payment.amount),
+        })
       );
     }
 

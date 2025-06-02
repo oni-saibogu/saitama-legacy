@@ -1,4 +1,5 @@
-import { Crud } from "./impl";
+import { Crud } from "@saitamafun/shared";
+
 import type { Coin } from "./models";
 
 export class CoinApi extends Crud<Coin> {

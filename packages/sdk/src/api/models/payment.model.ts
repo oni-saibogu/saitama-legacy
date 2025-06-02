@@ -16,3 +16,17 @@ export type Payment<T extends object = object> = {
   paymentLink: PaymentLink | string;
   status: "pending" | "success" | "failed";
 };
+
+export type PurePayment<T extends object = object> = {
+  id: string;
+  amount: string;
+  metadata?: T;
+  coin: Coin;
+  wallet: Wallet;
+  customer: Customer;
+  createdAt: string;
+  updatedAt: string;
+  signature?: string;
+  paymentLink: PaymentLink;
+  status: "pending" | "success" | "failed";
+};
