@@ -1,0 +1,25 @@
+{
+  "name": "saitamafun",
+  "private": "true",
+  "version": "0.0.0",
+  "license": "AGPL-3.0-only",
+  "packageManager": "bun@1.2.9",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "publish": "turbo run build && changeset version",
+    "clean": "rimraf -rf node_modules .turbo dist out */*/.turbo */packages/dist */*/.next */*/node_modules"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.4",
+    "@next/eslint-plugin-next": "^15.3.3",
+    "tsup": "^8.5.0",
+    "turbo": "^2.5.3",
+    "typescript": "latest"
+  },
+  "workspaces": [
+    "packages/*",
+    "web/*",
+    "servers/*"
+  ]
+}

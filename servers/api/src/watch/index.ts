@@ -1,0 +1,2 @@
+import "./onSolanaLogs";
+import "./onEthereumLogs";
